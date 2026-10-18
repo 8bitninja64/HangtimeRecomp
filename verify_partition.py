@@ -1,7 +1,7 @@
 """The runtime's own partition (full_runtime/partition.cpp, used by the first-run module build)
 must equal the generators' output (full_inventory.py + prepare_full.py) byte for byte.
 
-usage: python verify_partition.py [--exe PATH]   (needs your ROM; see hangtime_paths.py)
+usage: python verify_partition.py [--rom PATH] [--exe PATH]   (needs your ROM; see hangtime_paths.py)
 """
 import subprocess, sys, tempfile
 from pathlib import Path
@@ -9,11 +9,15 @@ from pathlib import Path
 P = Path(__file__).resolve().parent
 sys.path.insert(0, str(P))
 import hangtime_paths
+import os
+if '--rom' in sys.argv: os.environ['HANGTIME_ROM'] = str(Path(sys.argv[sys.argv.index('--rom') + 1]).resolve())
+hangtime_paths.rom_bytes()   # a clear message when the ROM is missing or wrong
 
 exe = Path(sys.argv[sys.argv.index('--exe') + 1]) if '--exe' in sys.argv else \
       (P / 'full_runtime/build/Release/hangtime.exe' if sys.platform == 'win32' else P / 'build/linux/hangtime')
 for script in ('full_inventory.py', 'prepare_full.py'):
-    subprocess.run([sys.executable, str(P / script)], check=True, capture_output=True)
+    g = subprocess.run([sys.executable, str(P / script)], capture_output=True, text=True)
+    assert g.returncode == 0, f'{script} failed: ' + g.stdout + g.stderr
 with tempfile.TemporaryDirectory() as tmp:
     r = subprocess.run([str(exe), '--partition', str(hangtime_paths.rom_path()), tmp], capture_output=True, text=True)
     assert r.returncode == 0, r.stdout + r.stderr

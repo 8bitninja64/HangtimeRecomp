@@ -30,6 +30,7 @@ import re, subprocess, sys
 from pathlib import Path
 
 P = Path(__file__).resolve().parent
+for _d in ('test_logs', 'captures'): (P / _d).mkdir(exist_ok=True)   # git-ignored; absent in a fresh clone
 exe = P / 'full_runtime/build/Release/hangtime.exe'
 assert exe.exists(), 'run build_full.py first'
 full = '--full-match' in sys.argv

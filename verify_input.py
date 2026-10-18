@@ -25,6 +25,7 @@ import re, subprocess, sys
 from pathlib import Path
 
 P = Path(__file__).resolve().parent
+for _d in ('test_logs', 'captures'): (P / _d).mkdir(exist_ok=True)   # git-ignored; absent in a fresh clone
 
 def menu(flag, start, right, select, shoot):
     """State-gated menu path: Start through the title, player 1, CHOOSE OPTION -> SELECT TEAMS, Shoot."""

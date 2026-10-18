@@ -18,6 +18,7 @@ from pathlib import Path
 import perf_report
 
 P = Path(__file__).resolve().parent
+for _d in ('test_logs', 'captures'): (P / _d).mkdir(exist_ok=True)   # git-ignored; absent in a fresh clone
 argv = sys.argv[1:]
 scenario = argv[argv.index('--scenario') + 1] if '--scenario' in argv else 'match'
 wide = '--widescreen' in argv

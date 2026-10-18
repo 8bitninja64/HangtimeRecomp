@@ -44,7 +44,7 @@ distributed); **source** = included as source.
 | rabbitizer | 1.7.10 | MIT | Copyright (c) 2022 Decompollaborate | package (in tools/) | (n64recomp: `lib/rabbitizer/LICENSE`) |
 | toml++ | 3.4.0 | MIT | Copyright (c) Mark Gillard | package (in tools/) | (n64recomp: `lib/tomlplusplus/LICENSE`) |
 | ELFIO |  | MIT | Copyright (C) 2001-present Serge Lamikhov-Center | package (in tools/) | (n64recomp: `lib/ELFIO/LICENSE.txt`) |
-| Zig | 0.17.0 | MIT (bundled libraries under their own licenses: LLVM libc++/libunwind/compiler-rt Apache-2.0 WITH LLVM-exception, mingw-w64 ZPL-2.1 and others, glibc LGPL-2.1-or-later, Linux headers GPL-2.0 WITH Linux-syscall-note) | Copyright (c) Zig contributors | package (tools/zig), module (runtime libraries linked into it) | Packaged unmodified with its own license files (tools/zig). OPEN: add the LGPL-2.1 and GPL-2.0 texts and mingw-w64 DISCLAIMER.PD to the Linux/Windows packages. |
+| Zig | 0.17.0 | MIT (bundled libraries under their own licenses: LLVM libc++/libunwind/compiler-rt Apache-2.0 WITH LLVM-exception, mingw-w64 ZPL-2.1 and others, glibc LGPL-2.1-or-later, Linux headers GPL-2.0 WITH Linux-syscall-note) | Copyright (c) Zig contributors | package (tools/zig), module (runtime libraries linked into it) | Packaged unmodified with its own license files (tools/zig); packages add the LGPL-2.1 and GPL-2.0 texts (LICENSES/). OPEN: mingw-w64 DISCLAIMER.PD (Windows package). |
 
 Operating-system libraries are used, not distributed: Direct3D 12, DXGI and the Microsoft Visual
 C++ runtime on Windows; SDL2 (Zlib), GTK 3 (LGPL-2.1-or-later), the Vulkan loader (Apache-2.0)

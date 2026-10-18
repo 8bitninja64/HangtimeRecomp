@@ -129,6 +129,12 @@ def main():
         else:
             missing.append(comp); rows.append(f'| {comp} | {lic} | **missing: obtain before release** |')
         if 'OPEN' in note and comp not in missing: missing.append(comp + ' (open question)')
+    # Zig's bundled glibc (LGPL-2.1-or-later) and Linux UAPI headers (GPL-2.0 WITH Linux-syscall-note)
+    # refer to these texts without shipping them; the standard texts from RT64's Mupen64Plus docs.
+    for text, name in (('lgpl-license', 'LGPL-2.1.txt'), ('gpl-license', 'GPL-2.0.txt')):
+        src = third_party.roots()['rt64'] / 'src/contrib/mupen64plus-core/doc' / text
+        if src.exists(): shutil.copy2(src, d / 'LICENSES' / name)
+        else: missing.append(f'{name} (for tools/zig)')
     sdl_readme = third_party.roots()['rt64'] / 'src/contrib/mupen64plus-win32-deps/SDL2-2.26.3/README-SDL.txt'
     if not LINUX and sdl_readme.exists(): shutil.copy2(sdl_readme, d / 'README-SDL.txt')
     if LINUX:

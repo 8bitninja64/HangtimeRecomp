@@ -19,6 +19,7 @@ import re, subprocess, sys
 from pathlib import Path
 
 P = Path(__file__).resolve().parent
+for _d in ('test_logs', 'captures'): (P / _d).mkdir(exist_ok=True)   # git-ignored; absent in a fresh clone
 
 def menu_p1():
     f = '--pad-press'
