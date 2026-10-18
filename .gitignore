@@ -1,0 +1,22 @@
+# Your ROM and everything generated from it: never commit (README "About").
+rom/
+*.z64
+*.n64
+*.v64
+full_generated/
+audio_rsp_generated.cpp
+full.toml
+full.symbols.toml
+full_inventory.json
+hangtime_game.*
+# Build output, packages, local runs
+build/
+full_runtime/build/
+tools/present_test/build/
+dist/
+captures/
+test_logs/
+hangtime.ini
+hangtime_data/
+*.log
+__pycache__/

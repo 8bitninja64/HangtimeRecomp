@@ -1,0 +1,305 @@
+{
+  "commit": "cdf5abbd5026fef5c364c676e4667c45e42b6863",
+  "files": [
+    {
+      "path": "COPYING",
+      "sha256": "230184F60BAE2FEAF244F10A8BAC053C8FF33A183BCC365B4D8B876D2B7F4809"
+    },
+    {
+      "path": "librecomp\\CMakeLists.txt",
+      "sha256": "B8DA3168E255598441738AE4686407DDB89140162FD6A1120478A9A573D99C6F"
+    },
+    {
+      "path": "librecomp\\include\\librecomp\\addresses.hpp",
+      "sha256": "7E1A523C75DC0B8B9B27CB8B4C7075717AB9E94D26A6330C00DE11FA7F12283B"
+    },
+    {
+      "path": "librecomp\\include\\librecomp\\config.hpp",
+      "sha256": "17728518F1AD93CA874E48A96A20500B29E0E7835B4BC3ACE76A2023BE8C25EB"
+    },
+    {
+      "path": "librecomp\\include\\librecomp\\euc-jp.hpp",
+      "sha256": "1DAF62FDF64418E8D9A673BE336F05EB5D16183EEA96A24C7F2F1C4283CD4532"
+    },
+    {
+      "path": "librecomp\\include\\librecomp\\files.hpp",
+      "sha256": "488BD103F5810BD0CF76B0083E28B68AC2D9EA8D38F4E52B42B75022306DA90B"
+    },
+    {
+      "path": "librecomp\\include\\librecomp\\game.hpp",
+      "sha256": "B7F7D13B3E2F3A48F6FCFFEA3CDA651A0C33527E9AA152085A41A08A99578CB7"
+    },
+    {
+      "path": "librecomp\\include\\librecomp\\helpers.hpp",
+      "sha256": "A6889E0877726838621A328C50FF725AA7CEFECDE9952CD825D7E4183C7591DC"
+    },
+    {
+      "path": "librecomp\\include\\librecomp\\mods.hpp",
+      "sha256": "13F158D05A7C054F28B5C21CA36E610E68D849003086D657C058418046B8B116"
+    },
+    {
+      "path": "librecomp\\include\\librecomp\\overlays.hpp",
+      "sha256": "7FBFF45A05CEB593C4CC52EF38FA39F1566ACD5FC8E1D2FA30ACEE6F98B39AFF"
+    },
+    {
+      "path": "librecomp\\include\\librecomp\\patcher.hpp",
+      "sha256": "60120C01B58EC95D9E495BE96E11EB2B851338947DBB0C7D640340BFEA2D5E00"
+    },
+    {
+      "path": "librecomp\\include\\librecomp\\rsp.hpp",
+      "sha256": "AA1C0F4DBF782148A2DB1B2E58604CCDC9A067F3177AD45BDFBE32564964737F"
+    },
+    {
+      "path": "librecomp\\include\\librecomp\\rsp_vu.hpp",
+      "sha256": "B8238ED38CFAC3DFD4F9F02280758434AB5495FD4696F80A3194F8A7831E64AF"
+    },
+    {
+      "path": "librecomp\\include\\librecomp\\rsp_vu_impl.hpp",
+      "sha256": "0BEEB6732E1311BE58447C17D404057B78267628A9550E144B3D89E4ABDBFF41"
+    },
+    {
+      "path": "librecomp\\include\\librecomp\\sections.h",
+      "sha256": "A8466A9B7DC4566AC2782A58F43FBEB1458DF52EBAB6F807D17DDEE3292DB7E2"
+    },
+    {
+      "path": "librecomp\\src\\ai.cpp",
+      "sha256": "4C12D4EA818418834ABEBDAB20C7C368725BCE4EBBD0769BED83260980686B1E"
+    },
+    {
+      "path": "librecomp\\src\\config.cpp",
+      "sha256": "EF6842D938B4264F50393C62B5C42ED1D457F5804AE5ADFAE9FAFD75199B649C"
+    },
+    {
+      "path": "librecomp\\src\\config_option.cpp",
+      "sha256": "645D962104516849D789C1A3D4015C0B32496C6B80C6FDF5A68FD777EB17F496"
+    },
+    {
+      "path": "librecomp\\src\\cont.cpp",
+      "sha256": "FD9B82C035A342F521CED9DE22596EEF26CCC3B2E782BE50A359A0BC0F5B0A7C"
+    },
+    {
+      "path": "librecomp\\src\\dp.cpp",
+      "sha256": "BA3545C6CFCE0441F765FE19D8E48266DF733FC1D951B1F433F934F595FEEB02"
+    },
+    {
+      "path": "librecomp\\src\\eep.cpp",
+      "sha256": "D407C8BA21CB45BFC9D92085C4DD84D30C5C360C3B77DD5871CE6D5B959200E3"
+    },
+    {
+      "path": "librecomp\\src\\euc-jp.cpp",
+      "sha256": "3864532FB37B0F8D40FFC0CA37F64FAF1D8658059FF31CDFF1E6142E0178DD67"
+    },
+    {
+      "path": "librecomp\\src\\extensions.cpp",
+      "sha256": "8FBD47B37CD0C8925EBCF80D06C47376016F713C8B6F9A0D772D1E92E74C4AE9"
+    },
+    {
+      "path": "librecomp\\src\\files.cpp",
+      "sha256": "22E519981A9583E1D9455B62F5C2C686B69FB1813A9D5910B3BBA467638B0085"
+    },
+    {
+      "path": "librecomp\\src\\flash.cpp",
+      "sha256": "6DCDE00D6545779E4769EA07F99C745C5924114A9E3AB342E02316C362520240"
+    },
+    {
+      "path": "librecomp\\src\\heap.cpp",
+      "sha256": "4A85AB12AEAF6F50BE5D5913B3E0CCB8C3BF512627C3880C0BE0D212AA9DC2D6"
+    },
+    {
+      "path": "librecomp\\src\\math_routines.cpp",
+      "sha256": "C17568804733D5265DC3D06436763F0EA241C9907A2554CA08A76FF181AD761C"
+    },
+    {
+      "path": "librecomp\\src\\mod_config_api.cpp",
+      "sha256": "745F5744AC458DDE580D48DB5CAE62FE5FA0C59EA166396A83F7D80E9D294680"
+    },
+    {
+      "path": "librecomp\\src\\mod_events.cpp",
+      "sha256": "1701E1CE9C5B2B15EC124A1AFC59E1D2B3B2BEED2F0430A143931CEDC87EE18D"
+    },
+    {
+      "path": "librecomp\\src\\mod_hooks.cpp",
+      "sha256": "7984389F78BF5569E21F945CD1089A9FA48F352D208D36595325CAC3905CE479"
+    },
+    {
+      "path": "librecomp\\src\\mod_manifest.cpp",
+      "sha256": "56E816257822A7451862EF6119F98103B473FC44A7130D8CBE449C80F3820A9F"
+    },
+    {
+      "path": "librecomp\\src\\mods.cpp",
+      "sha256": "526353DFAE032DB30C751CCCE0D0585E7CA4EF03A24F75C34A8C4AA36169C345"
+    },
+    {
+      "path": "librecomp\\src\\overlays.cpp",
+      "sha256": "4DE8ACC1BBF36FA4105902D2E98D45B230877ED6936B616EC864247583F46AAD"
+    },
+    {
+      "path": "librecomp\\src\\pak.cpp",
+      "sha256": "69B2CE2C82EB72531068526AA91F55038FE31C31683196405669A82B1886C471"
+    },
+    {
+      "path": "librecomp\\src\\patcher.cpp",
+      "sha256": "F29C66D3F1492E727C77260AF98C764BF218CE16B2C40D9C68EE9DAA22D5ADDA"
+    },
+    {
+      "path": "librecomp\\src\\pi.cpp",
+      "sha256": "3C84B79CB743879975D66B6F5620EF4C2C9204831C913F2FD21140FE0CAADE6A"
+    },
+    {
+      "path": "librecomp\\src\\print.cpp",
+      "sha256": "3258F626770CAAD429E7531299497FA0B5CCFB93075FD6DEA9ACBFE19FBA19D7"
+    },
+    {
+      "path": "librecomp\\src\\recomp.cpp",
+      "sha256": "5BCB415DFDA2D841F235AC89035E4FF3769907192127C9A3E2899BE5033AA713"
+    },
+    {
+      "path": "librecomp\\src\\rsp.cpp",
+      "sha256": "5719FC22EC868B087E2F73B37E2F80ACB640526DEABC3E85B590BA082822A066"
+    },
+    {
+      "path": "librecomp\\src\\sp.cpp",
+      "sha256": "436A254311D54B307236CB437AD0641DAFDEBFE1050E5708DA77D42FBA0972A3"
+    },
+    {
+      "path": "librecomp\\src\\ultra_stubs.cpp",
+      "sha256": "EE45233BA54853E105CFBAD7BF3151D19CF54AEFA6AFBA491DA97E822B873CE3"
+    },
+    {
+      "path": "librecomp\\src\\ultra_translation.cpp",
+      "sha256": "4B4DCF5F27CA6D9755DAB0937B3C293BB741B3A99A612AC98C0BF82405F30D31"
+    },
+    {
+      "path": "librecomp\\src\\vi.cpp",
+      "sha256": "7135DFA781237D4F4815C7F6BD4C1F7ADD7BF250FA1B2E987884EE7FEEA1ED97"
+    },
+    {
+      "path": "thirdparty\\concurrentqueue\\blockingconcurrentqueue.h",
+      "sha256": "526C7392A10F8C26BC615FAC2FA03B6CE25BC62A2AB6E36CBED8DCB49598B3CF"
+    },
+    {
+      "path": "thirdparty\\concurrentqueue\\concurrentqueue.h",
+      "sha256": "CDC3DAA8B185A6B68F97DB8C657C12F2E4B4DD29B76ECDE45122F5286FFF8A1A"
+    },
+    {
+      "path": "thirdparty\\concurrentqueue\\lightweightsemaphore.h",
+      "sha256": "6454B8165042BBC5708EF933EBFC63C0B8266D3DE832D3E0EBC6CD85490A5380"
+    },
+    {
+      "path": "thirdparty\\json\\json.hpp",
+      "sha256": "5F09D1EEBE9B3557F21DF155869AF13BCDE79B74A0748F82CA946E8CC088AAA0"
+    },
+    {
+      "path": "thirdparty\\sse2neon\\sse2neon.h",
+      "sha256": "E6FCBBD5C573945B494617EE65C04254FFA86CF6FA602C0FCA2B6C52CD0A67F0"
+    },
+    {
+      "path": "ultramodern\\CMakeLists.txt",
+      "sha256": "FE4F72185607DA34B1B920EC6EB33FBAE0F984C99CC41331B5C3561043690292"
+    },
+    {
+      "path": "ultramodern\\include\\ultramodern\\config.hpp",
+      "sha256": "090F7B95C3F438E630482191F485A85BFB57C1FD6A870BC9CECE049EFFD85DA0"
+    },
+    {
+      "path": "ultramodern\\include\\ultramodern\\error_handling.hpp",
+      "sha256": "80E5544BC89129E6C936E78B0E08FC8A5A4F3B58E683A33D9F681372A4311ABA"
+    },
+    {
+      "path": "ultramodern\\include\\ultramodern\\events.hpp",
+      "sha256": "A0981686C89587651707A96435FE7840327E8B59EAEBE0FDA8EC4EE54391ACA0"
+    },
+    {
+      "path": "ultramodern\\include\\ultramodern\\extensions.h",
+      "sha256": "4078E5397FADDDF07BB316EA4FF577CD26BFC9E5150581A47384B458488565D6"
+    },
+    {
+      "path": "ultramodern\\include\\ultramodern\\input.hpp",
+      "sha256": "4B470C6C1C5945EC91C1A7C9AD5C4DD1A6891A66A9DEDF0174904294ADE01EE5"
+    },
+    {
+      "path": "ultramodern\\include\\ultramodern\\renderer_context.hpp",
+      "sha256": "1A821F4539F7D6DEBEB5C0F4B59414CF1AABDB4BF780E7587D808F5C46E20BA8"
+    },
+    {
+      "path": "ultramodern\\include\\ultramodern\\rsp.hpp",
+      "sha256": "784B245E646F4A1958FA9BEC5ECB0E939726FCE7B082F1E1E699ECB8BB601F89"
+    },
+    {
+      "path": "ultramodern\\include\\ultramodern\\threads.hpp",
+      "sha256": "30DDF288542EA96D29E490EBD61B55CA18D81FC240EA543FDBF4B0064EF98DB9"
+    },
+    {
+      "path": "ultramodern\\include\\ultramodern\\ultra64.h",
+      "sha256": "C640F57E39A146EBC8FB0F860E15C5500B65049C00ADCFD7E982C115D9C8A756"
+    },
+    {
+      "path": "ultramodern\\include\\ultramodern\\ultramodern.hpp",
+      "sha256": "9BF2A59FFD389E669B396DF284BAA9FAE7C259002651527BC549693E718E7C87"
+    },
+    {
+      "path": "ultramodern\\src\\audio.cpp",
+      "sha256": "8C101029004D3BBD897063FFFEFD85A57B6DE815707FBE51C0F67E887FCB62AD"
+    },
+    {
+      "path": "ultramodern\\src\\error_handling.cpp",
+      "sha256": "9ACF9A8EB8B4C1395D50508D11B9A64DA2A6F0A255C9CFEDB1A4437A75EB7050"
+    },
+    {
+      "path": "ultramodern\\src\\events.cpp",
+      "sha256": "561A1C12E17CB4580DEEA2E49EFBE4B0A078FBF0E6939F9770D4149B370E2A13"
+    },
+    {
+      "path": "ultramodern\\src\\extensions.cpp",
+      "sha256": "4BA1F9EFFB332CAC06D2177A0C0F92D378431DFBB14187B1053A7009761489A4"
+    },
+    {
+      "path": "ultramodern\\src\\input.cpp",
+      "sha256": "C903138CF52682CFEECACB65F4A632C0DFF57230955D76C370B7D2EA5B4348D1"
+    },
+    {
+      "path": "ultramodern\\src\\mesgqueue.cpp",
+      "sha256": "C22F4543C44EF1A27EB49D3D029F572E5C3F6C4693317E1C7C614F24052EA416"
+    },
+    {
+      "path": "ultramodern\\src\\misc_ultra.cpp",
+      "sha256": "1B48F71A7B670D8544F176A55CAB0032255516848FBDDF156F43E0F9ED7E65D1"
+    },
+    {
+      "path": "ultramodern\\src\\port_main.c",
+      "sha256": "41A95751AF9EB370581EA9380B29CCA21E7ED9D27EB7395D17E0A33A7DF8EA61"
+    },
+    {
+      "path": "ultramodern\\src\\renderer_context.cpp",
+      "sha256": "5292708947EBBC7FB8B7628F985D2CD0216482830F8B198C58E1E1BD9AA3DF35"
+    },
+    {
+      "path": "ultramodern\\src\\rsp.cpp",
+      "sha256": "806AC557FC4C06FA1A66DA2F5CA42133BFAE98E4E3DA4FC759F445D3093130A5"
+    },
+    {
+      "path": "ultramodern\\src\\scheduling.cpp",
+      "sha256": "2C4610E03076E2AB63C3254434A98819DE08B602466E073C2FE6F65357735DDD"
+    },
+    {
+      "path": "ultramodern\\src\\task_win32.cpp",
+      "sha256": "512E3BDB144FC6316B397C0A7F285F02F732055EFBC2CAA6BAD8E9AC646ACE57"
+    },
+    {
+      "path": "ultramodern\\src\\threadqueue.cpp",
+      "sha256": "D3576DD01B01E2ADA9AAF914E8E2AD8EA726479278BA8DF525E2725AF43F1946"
+    },
+    {
+      "path": "ultramodern\\src\\threads.cpp",
+      "sha256": "37BB4F98B46EA7BFFB13D9549600DBBBC03A23716B5BA0DBA0A03DBB03097830"
+    },
+    {
+      "path": "ultramodern\\src\\timer.cpp",
+      "sha256": "73F7755BAB109FD99CBC5A9BAFB4E18122ACE5C661A4DE3D04D6463442FA52C8"
+    },
+    {
+      "path": "ultramodern\\src\\ultrainit.cpp",
+      "sha256": "79B50ED07192D3AED7EEBA7C081B2411AE6E69BFC736D19E791276345FD9E393"
+    }
+  ]
+}

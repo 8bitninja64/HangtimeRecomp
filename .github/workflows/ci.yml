@@ -1,0 +1,71 @@
+# CI without game data: content checks, and the runtime (no game module) on Windows and Linux.
+# The game module and gameplay tests need a player's ROM and never run here (docs/TESTING.md).
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  content-checks:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: No ROM data, generated code, binaries, secrets or personal paths
+        run: python check_public.py
+
+  linux-runtime:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build clang pkg-config libsdl2-dev libgtk-3-dev libvulkan-dev
+      - uses: actions/cache@v4
+        with:
+          path: build/deps
+          key: deps-linux-${{ hashFiles('.gitmodules') }}-${{ hashFiles('build.py') }}-v1
+      - name: Build tools, RT64 and the runtime (no ROM)
+        run: python3 build.py --runtime-only
+      - name: Runtime starts and reports its version
+        run: build/linux/hangtime --version
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: linux-build-logs
+          path: build/logs/
+
+  windows-runtime:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v4
+        with:
+          path: build/deps
+          key: deps-windows-${{ hashFiles('.gitmodules') }}-${{ hashFiles('build.py') }}-v1
+      - name: Build tools, RT64 and the runtime (no ROM)
+        run: python build.py --runtime-only
+      - name: Runtime starts and reports its version
+        run: full_runtime\build\Release\hangtime.exe --version --console
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: windows-build-logs
+          path: build/logs/

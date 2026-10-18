@@ -1,0 +1,42 @@
+name: Bug report
+description: Something does not work or differs from the original game
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Never attach ROMs, generated game code, memory dumps, game audio or screenshots of the game.
+        Remove personal paths from logs if you do not want to share them.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Release number or commit hash
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: [Windows 10/11, Linux, Steam Deck (Desktop Mode), Steam Deck (Game Mode), Other]
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: CPU, GPU and driver version
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: Include the steps to reproduce it (menu, mode, controller, settings).
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: The relevant part of hangtime.log (Windows) or the terminal output (Linux); game_build/build.log for first-start build problems.
+      render: text

@@ -1,0 +1,8 @@
+text_offset = 0x7a180
+text_size = 0xe20
+text_address = 0x1080
+rom_file_path = '../rom/NBA Hangtime (USA).z64'
+output_file_path = 'audio_rsp_generated.cpp'
+output_function_name = 'hangtime_audio_rsp'
+# Original ABI dispatch table at ucode_data + 0x10 (ROM 0xa41d0).
+extra_indirect_branch_targets = [0x1118,0x1470,0x11dc,0x1b38,0x1214,0x187c,0x1254,0x12d0,0x12ec,0x1328,0x140c,0x1294,0x1e24,0x138c,0x170c,0x144c]

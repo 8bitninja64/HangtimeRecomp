@@ -1,0 +1,6 @@
+[submodule "external/N64Recomp"]
+	path = external/N64Recomp
+	url = https://github.com/N64Recomp/N64Recomp.git
+[submodule "external/rt64"]
+	path = external/rt64
+	url = https://github.com/rt64/rt64.git

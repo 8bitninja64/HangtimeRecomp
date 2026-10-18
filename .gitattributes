@@ -1,0 +1,5 @@
+# Upstream code is kept byte-exact (vendor_manifest.json).
+vendor/** -text -whitespace
+# Scripts that run on Linux keep LF line endings.
+*.sh text eol=lf
+*.py text eol=lf

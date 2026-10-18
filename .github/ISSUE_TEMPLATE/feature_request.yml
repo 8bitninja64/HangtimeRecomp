@@ -1,0 +1,13 @@
+name: Feature request
+description: Suggest an improvement
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: The project's goal is the original game, accurately, on modern PCs (docs/ROADMAP.md). New game content and online play are out of scope.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like, and why?
+    validations:
+      required: true

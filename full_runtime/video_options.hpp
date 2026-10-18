@@ -1,0 +1,18 @@
+#pragma once
+// Presentation options handed from the launcher to the RT64 renderer context. Defaults keep the
+// original presentation (4:3, original refresh, RT64 integer window scale). Anything else is an
+// experimental mode under evaluation (FULL_GAME.md "Widescreen / frame rate").
+struct HangtimeVideoOptions {
+    int aspect = 0;            // 0 original 4:3, 1 RT64 Expand (fill the window), 2 manual ratio
+    double aspect_ratio = 16.0 / 9.0;
+    int refresh = 0;           // 0 original (VI rate), 1 display rate, 2 manual Hz (RT64 frame interpolation)
+    int refresh_hz = 120;
+    int msaa = 0;              // 0, 2, 4, 8
+    double resolution = 0;     // 0 = integer scale to the window, else a fixed multiplier
+    bool widescreen = false;   // --widescreen: true 16:9 live play (widescreen.cpp), aspect_ratio = target
+    bool present_blocking = false;   // --present-blocking: RT64's original back-pressure (A/B; rt64_context.cpp)
+    bool vulkan = false;       // --graphics-api vulkan (Windows; Linux is always Vulkan)
+};
+extern HangtimeVideoOptions hangtime_video;
+#include <atomic>
+extern std::atomic<bool> hangtime_ws_toggle_request;   // F10 (main thread) -> applied by the renderer (rt64_context.cpp)

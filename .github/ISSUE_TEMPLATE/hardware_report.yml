@@ -1,0 +1,35 @@
+name: Hardware test report
+description: Report how it runs on your PC, Linux system, Steam Deck or gamepad (docs/TESTING.md)
+labels: [hardware-report]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Version
+    validations:
+      required: true
+  - type: dropdown
+    id: test
+    attributes:
+      label: Test
+      options: [Clean Windows PC, Physical gamepad, Native Linux, Steam Deck Desktop Mode, Steam Deck Game Mode]
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: System (OS or distribution, CPU, GPU, driver; gamepad model)
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options: [Works fully, Works with problems, Does not work]
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Details
+      description: First-start build time, frame rate, audio, controls, anything that did not work.
