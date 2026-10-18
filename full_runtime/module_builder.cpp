@@ -7,6 +7,8 @@
 #include <thread>
 #include <vector>
 #include "launcher.hpp"
+#include "partition.hpp"
+#include "branding.hpp"
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -40,7 +42,7 @@ ModuleBuildPaths module_build_paths() {
 }
 
 bool module_build_available(const ModuleBuildPaths& p) {
-    for (const fs::path& f : {p.setup / "full.toml", p.setup / "full.symbols.toml", p.setup / "audio_rsp.toml", p.setup / "sdk" / "src" / "game_module_api.cpp",
+    for (const fs::path& f : {p.setup / "audio_rsp.toml", p.setup / "sdk" / "src" / "game_module_api.cpp",
                               p.tools / (std::string("N64Recomp") + EXE), p.tools / (std::string("RSPRecomp") + EXE), p.zig})
         if (!fs::exists(f)) return false;
 #ifdef _WIN32
@@ -138,7 +140,7 @@ void module_build(const ModuleBuildPaths& p, const fs::path& rom_path, ModuleBui
     fs::create_directories(p.work / "generated", ec);
     fs::create_directories(p.work / "obj", ec);
     g.log = p.work / "build.log";
-    { std::ofstream(g.log, std::ios::trunc) << "NBA Hangtime game files build\n"; }
+    { std::ofstream(g.log, std::ios::trunc) << HANGTIME_PRODUCT_NAME " game files build\n"; }
 
     // 1. The player's ROM as a big-endian image (launcher_load_rom checks the hash and converts
     //    .v64/.n64), only for the recompilers; removed when done.
@@ -149,9 +151,17 @@ void module_build(const ModuleBuildPaths& p, const fs::path& rom_path, ModuleBui
 
     // 2. Recompile the game's CPU code and audio microcode (N64Recomp, RSPRecomp).
     g.set_step("Recompiling the game code"); g.fraction = 0.05f;
-    const std::string symbols = launcher_utf8(fs::absolute(p.setup / "full.symbols.toml"));
-    if (!write_config(p.setup / "full.toml", p.work / "full.toml", {{"symbols_file_path", symbols}, {"rom_file_path", "rom.z64"}, {"output_func_path", "generated"}}) ||
-        !write_config(p.setup / "audio_rsp.toml", p.work / "audio_rsp.toml", {{"rom_file_path", "rom.z64"}, {"output_file_path", "audio_rsp_generated.cpp"}}))
+    // The function partition and hooks are computed here from the ROM (partition.cpp), so the
+    // package carries no function tables of the game.
+    HangtimePartition part;
+    if (!hangtime_partition(rom, part, err)) return fail("The ROM could not be analysed: " + err);
+    {
+        std::ofstream(p.work / "full.symbols.toml", std::ios::binary) << part.symbols_toml;
+        std::ofstream(p.work / "full.toml", std::ios::binary)
+            << "[input]\nsymbols_file_path='" << launcher_utf8(fs::absolute(p.work / "full.symbols.toml")) << "'\nrom_file_path='rom.z64'\n"
+               "output_func_path='generated'\nrecomp_include='#include \"hangtime_full.h\"'\n\n" << part.hooks_toml;
+    }
+    if (!write_config(p.setup / "audio_rsp.toml", p.work / "audio_rsp.toml", {{"rom_file_path", "rom.z64"}, {"output_file_path", "audio_rsp_generated.cpp"}}))
         return fail("Could not write the recompiler configuration.");
     if (run({launcher_utf8(p.tools / (std::string("N64Recomp") + EXE)), launcher_utf8(fs::absolute(p.work / "full.toml"))}, p.work, g.log) != 0) return fail("The game code recompiler failed.");
     g.fraction = 0.25f;

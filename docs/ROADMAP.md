@@ -6,7 +6,8 @@
 - Launcher, rebindable keyboard and gamepad controls, local multiplayer (ports 1-4), true 16:9
   widescreen for live play, original cheats, fullscreen, render GPU choice.
 - Runtime / game module split: no game code in anything distributed; first-start build of the
-  game module from the player's ROM with a bundled toolchain (Windows and Linux).
+  game module from the player's ROM with a bundled toolchain (Windows and Linux); the function
+  partition is computed on the player's machine, so packages carry no function tables.
 - Native Linux build (Vulkan), verified under WSL2 with software rendering.
 
 ## Next
@@ -15,9 +16,8 @@
    launcher flow, sensible graphics defaults, packaging (glibc baseline).
 3. **Clean-machine Windows testing**; decide between the Visual C++ Redistributable and a
    static runtime.
-4. Port the function partition to the runtime so release packages carry no analysis tables.
-5. Launcher: "rebuild game files" button, controller remapping polish.
-6. Rendering: smoother texture uploads; RT64 enhancement options where they keep the original
+4. Launcher: "rebuild game files" button, controller remapping polish.
+5. Rendering: smoother texture uploads; RT64 enhancement options where they keep the original
    look (resolution, MSAA) once evaluated.
 
 ## Not planned

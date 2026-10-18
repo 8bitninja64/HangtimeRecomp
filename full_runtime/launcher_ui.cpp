@@ -18,6 +18,7 @@
 #include "input_map.hpp"
 #include "render_gpu.hpp"
 #include "module_builder.hpp"
+#include "branding.hpp"
 #include <thread>
 
 namespace {
@@ -156,10 +157,10 @@ void background(Ui& u, int w, int h) {
 }
 
 void title(Ui& u, bool subtitle) {
-    text(u, 52, 800 - 330, 34, GOLD, "NBA", 0);
-    outlined(u, 150, 800, 62, rgba(255, 230, 90), rgba(255, 110, 20), "HANG TIME", 0.5f);
+    text(u, 52, 800 - 330, 34, GOLD, HANGTIME_TITLE_SMALL, 0);
+    outlined(u, 150, 800, 62, rgba(255, 230, 90), rgba(255, 110, 20), HANGTIME_TITLE_LARGE, 0.5f);
     dl()->AddRectFilledMultiColor(u.P(430, 230), u.P(1170, 236), RED, rgba(255, 140, 40), rgba(255, 140, 40), RED);
-    if (subtitle) text(u, 30, 800, 248, rgba(205, 212, 228), "RECOMPILED  \xC2\xB7  PC EDITION", 0.5f, 6);
+    if (subtitle) text(u, 30, 800, 248, rgba(205, 212, 228), HANGTIME_TITLE_SUB, 0.5f, 6);
 }
 
 struct Tile { float x, y, w, h; const char* label; void (*icon)(Ui&, float, float, float); };
@@ -198,7 +199,9 @@ void hints(Ui& u, const char* a, const char* b) {
     chip(1250, rgba(70, 200, 90), "A", a);
     chip(1420, rgba(230, 60, 60), "B", b);
     text(u, 20, 30, 840, DIM, (std::string("v") + HANGTIME_VERSION).c_str());
-    text(u, 20, 30, 864, DIM, "NBA HANGTIME RECOMPILED  -  PC EDITION");
+    std::string footer = HANGTIME_PRODUCT_NAME;
+    for (char& c : footer) c = (char)toupper((unsigned char)c);
+    text(u, 20, 30, 864, DIM, footer.c_str());
 }
 
 // ---- navigation input (main page) ----
@@ -409,7 +412,7 @@ void page_files(Ui& u, LauncherSettings& s) {
 
 void page_about(Ui& u) {
     panel(u, [&] {
-        ImGui::Text("NBA Hangtime Recompiled  -  PC Edition  v%s", HANGTIME_VERSION);
+        ImGui::Text("%s  v%s", HANGTIME_PRODUCT_NAME, HANGTIME_VERSION);
         ImGui::TextColored(ImColor(DIM), "Build %s %s  -  %s", __DATE__, __TIME__,
 #ifdef _WIN32
                            "Windows x64, Direct3D 12"
@@ -427,8 +430,9 @@ void page_about(Ui& u) {
         ImGui::BulletText("RT64 (MIT) - renderer; plume, DXC, zstd, nativefiledialog-extended");
         ImGui::BulletText("SDL2 (zlib), Dear ImGui (MIT), Roboto font (Apache-2.0)");
         ImGui::Spacing();
-        ImGui::TextWrapped("NBA Hangtime is a trademark of its owners. This project is not affiliated with or endorsed by "
-                           "Midway, Williams, Nintendo or the NBA.");
+        ImGui::TextWrapped("Unofficial project. NBA Hangtime and the names of the NBA and its teams are trademarks of their "
+                           "owners, used only to identify the game this program needs. Not affiliated with or endorsed by "
+                           "the NBA, Midway, Williams, Nintendo or any other rights holder.");
     });
 }
 
@@ -444,7 +448,7 @@ LauncherResult run_launcher(LauncherSettings& s) {
     Ui u;
     SDL_DisplayMode dm{}; SDL_GetDesktopDisplayMode(0, &dm);
     int h = std::min(900, dm.h * 8 / 10), w = h * 16 / 9;
-    u.window = SDL_CreateWindow("NBA Hangtime", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    u.window = SDL_CreateWindow(HANGTIME_PRODUCT_NAME, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     if (!u.window) return LauncherResult::Play;   // no launcher possible: go straight to the game
     u.renderer = SDL_CreateRenderer(u.window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!u.renderer) { SDL_DestroyWindow(u.window); return LauncherResult::Play; }
@@ -611,7 +615,7 @@ bool run_module_setup(const std::filesystem::path& rom, std::string& error) {
     std::thread worker([&] { module_build(paths, rom, progress); });
     SDL_DisplayMode dm{}; SDL_GetDesktopDisplayMode(0, &dm);
     const int h = std::min(540, dm.h * 6 / 10), w = h * 16 / 9;
-    SDL_Window* window = SDL_CreateWindow("NBA Hangtime - preparing game files", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_ALLOW_HIGHDPI);
+    SDL_Window* window = SDL_CreateWindow(HANGTIME_PRODUCT_NAME " - preparing game files", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, SDL_WINDOW_ALLOW_HIGHDPI);
     SDL_Renderer* renderer = window ? SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC) : nullptr;
     if (renderer) {
         ImGui::CreateContext();
@@ -631,7 +635,7 @@ bool run_module_setup(const std::filesystem::path& rom, std::string& error) {
             ImGui::SetNextWindowPos({0, 0}); ImGui::SetNextWindowSize(io.DisplaySize);
             ImGui::Begin("##setup", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground);
             ImGui::SetCursorPos({io.DisplaySize.x * 0.08f, io.DisplaySize.y * 0.2f});
-            ImGui::TextColored(ImColor(GOLD), "Preparing NBA Hangtime from your ROM");
+            ImGui::TextColored(ImColor(GOLD), "Preparing the game from your ROM");
             ImGui::SetCursorPosX(io.DisplaySize.x * 0.08f);
             ImGui::TextColored(ImColor(DIM), "One time only. The game code is generated on this computer;");
             ImGui::SetCursorPosX(io.DisplaySize.x * 0.08f);

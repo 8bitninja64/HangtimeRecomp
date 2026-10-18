@@ -22,6 +22,7 @@ check its RAM, logs, frames and audio. They open a game window; run them one at 
 | `python verify_cheats.py` | original cheats through the game's own flags | 6 min |
 | `python verify_multiplayer.py` | two virtual gamepads as opponents and as teammates | 7 min |
 | `python bench_perf.py` | frame timing (waits for a quiet machine) | 4 min |
+| `python verify_partition.py` | the runtime's own partition equals the generators' output | 10 s |
 
 ## Hardware tests that need a person
 

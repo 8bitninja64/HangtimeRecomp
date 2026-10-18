@@ -84,7 +84,7 @@ endfunction()
 # ---- runtime objects (no generated or game-derived sources) ----
 add_library(hangtime_rt OBJECT
     main.cpp launcher.cpp launcher_ui.cpp input_map.cpp cheats.cpp dl_dump.cpp widescreen.cpp rt64_context.cpp perf.cpp render_gpu.cpp
-    game_module_loader.cpp module_builder.cpp "${RT64}/src/contrib/imgui/backends/imgui_impl_sdlrenderer2.cpp" runtime_support.cpp "${NATIVE}/process_context.cpp"
+    game_module_loader.cpp module_builder.cpp partition.cpp "${RT64}/src/contrib/imgui/backends/imgui_impl_sdlrenderer2.cpp" runtime_support.cpp "${NATIVE}/process_context.cpp"
     ${ULTRAMODERN_SOURCES} ${LIBRECOMP_SOURCES})
 hangtime_settings(hangtime_rt)
 

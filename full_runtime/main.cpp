@@ -37,6 +37,7 @@
 #include "recomp.h"
 #include "lightweightsemaphore.h"
 #include "launcher.hpp"
+#include "branding.hpp"
 #include "launcher_ui.hpp"
 #include "input_map.hpp"
 #include "cheats.hpp"
@@ -46,6 +47,7 @@
 
 #include "game_module.hpp"   // the recompiled game lives in a separately built module
 #include "module_builder.hpp"
+#include "partition.hpp"
 
 void hangtime_register_functions();
 std::unique_ptr<ultramodern::renderer::RendererContext> hangtime_create_rt64_context(uint8_t* rdram, ultramodern::renderer::WindowHandle window, bool developer_mode);
@@ -359,11 +361,11 @@ static RspUcodeFunc* get_rsp_microcode(const OSTask* task) {
 }
 
 #ifdef _WIN32
-static void message_box(const char* msg) { fprintf(stderr, "ERROR: %s\n", msg); MessageBoxA(nullptr, msg, "NBA Hangtime", MB_OK | MB_ICONERROR); }
-static void warning_box(const std::string& msg) { MessageBoxA(nullptr, msg.c_str(), "NBA Hangtime", MB_OK | MB_ICONWARNING); }
+static void message_box(const char* msg) { fprintf(stderr, "ERROR: %s\n", msg); MessageBoxA(nullptr, msg, HANGTIME_PRODUCT_NAME, MB_OK | MB_ICONERROR); }
+static void warning_box(const std::string& msg) { MessageBoxA(nullptr, msg.c_str(), HANGTIME_PRODUCT_NAME, MB_OK | MB_ICONWARNING); }
 #else
-static void message_box(const char* msg) { fprintf(stderr, "ERROR: %s\n", msg); SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "NBA Hangtime", msg, nullptr); }
-static void warning_box(const std::string& msg) { SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "NBA Hangtime", msg.c_str(), nullptr); }
+static void message_box(const char* msg) { fprintf(stderr, "ERROR: %s\n", msg); SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, HANGTIME_PRODUCT_NAME, msg, nullptr); }
+static void warning_box(const std::string& msg) { SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, HANGTIME_PRODUCT_NAME, msg.c_str(), nullptr); }
 #endif
 
 #ifdef _WIN32
@@ -566,7 +568,18 @@ int main(int argc, char** argv) {
     std::set<std::string> test_cheats;
     std::string render_gpu_arg;   // --render-gpu NAME (tests); else the player setting
     for (int i = 1; i < argc; ++i)
-        if (!strcmp(argv[i], "--version")) {   // CI smoke test: the runtime starts (no ROM, no window)
+        if (!strcmp(argv[i], "--partition") && i + 2 < argc) {   // verify_partition.py: the runtime's own partition
+            std::vector<uint8_t> rom; std::string error; HangtimePartition part;
+            if (!launcher_load_rom(std::filesystem::u8path(argv[i + 1]), rom, error) || !hangtime_partition(rom, part, error)) {
+                fprintf(stderr, "partition FAILED: %s\n", error.c_str()); return 1;
+            }
+            const std::filesystem::path dir = std::filesystem::u8path(argv[i + 2]);
+            std::ofstream(dir / "full.symbols.toml", std::ios::binary) << part.symbols_toml;
+            std::ofstream(dir / "full.hooks.toml", std::ios::binary) << part.hooks_toml;
+            printf("partition: %zu functions\n", part.functions);
+            return 0;
+        }
+        else if (!strcmp(argv[i], "--version")) {   // CI smoke test: the runtime starts (no ROM, no window)
             printf("hangtime runtime %s (game module API %u)\n", HANGTIME_VERSION, (unsigned)HANGTIME_GAME_API_VERSION);
             fflush(stdout);
             return 0;
@@ -750,7 +763,7 @@ int main(int argc, char** argv) {
 #else
     const uint32_t window_api = SDL_WINDOW_VULKAN;   // RT64 Vulkan surface through SDL (RT64_SDL_WINDOW_VULKAN)
 #endif
-    window = SDL_CreateWindow("NBA Hangtime", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, win_w, win_h, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | window_api);
+    window = SDL_CreateWindow(HANGTIME_PRODUCT_NAME, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, win_w, win_h, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | window_api);
     if (window) {
         SDL_DisplayMode dm{}; SDL_GetDesktopDisplayMode(0, &dm);
         fprintf(stderr, "WINDOW %dx%d display %dx%d dpi=%.0f\n", win_w, win_h, dm.w, dm.h, ddpi);

@@ -2,6 +2,7 @@
 // Portable (Windows / Linux): own SHA-256, per-OS executable and data paths, nativefiledialog-
 // extended (RT64's copy) for the picker.
 #include "launcher.hpp"
+#include "branding.hpp"
 #include <array>
 #include <cstdio>
 #include <cstdlib>
@@ -86,7 +87,7 @@ LauncherSettings launcher_load_settings() {
 
 void launcher_save_settings(const LauncherSettings& s) {
     std::ofstream f(launcher_data_dir() / "hangtime.ini", std::ios::trunc);
-    f << "# NBA Hangtime native settings (written by hangtime.exe " << HANGTIME_VERSION << ")\n";
+    f << "# " HANGTIME_PRODUCT_NAME " settings (written by version " << HANGTIME_VERSION << ")\n";
     f << "rom=" << launcher_utf8(s.rom) << "\n";
     f << "window_mode=" << s.window_mode << "\n";
     f << "widescreen=" << (s.widescreen ? 1 : 0) << "\n";

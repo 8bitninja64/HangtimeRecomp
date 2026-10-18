@@ -58,7 +58,9 @@ SDK = {
     'src/game_module_api.cpp': P / 'full_runtime/game_module_api.cpp',
     'src/rsp.cpp': RTV / 'librecomp/src/rsp.cpp',
 }
-SETUP = {'full.toml': P / 'full.toml', 'full.symbols.toml': P / 'full.symbols.toml', 'audio_rsp.toml': P / 'audio_rsp.toml'}
+# The function partition and hooks are computed on the player's machine (partition.cpp); only the
+# audio microcode's location and dispatch targets are configuration.
+SETUP = {'audio_rsp.toml': P / 'audio_rsp.toml'}
 
 # Third-party components in this package (third_party.py): compiled into the runtime or shipped.
 def package_components():
@@ -71,7 +73,7 @@ def package_components():
         out.append((f'{name} {ver}'.strip(), spdx, path, note))
     return out
 FILES = ['hangtime', 'assets/Roboto-Medium.ttf'] if LINUX else         ['hangtime.exe', 'SDL2.dll', 'dxcompiler.dll', 'dxil.dll', 'hangtime.lib', 'assets/Roboto-Medium.ttf']
-FORBIDDEN = ('hangtime_game', '.z64', '.n64', '.v64', '.map', '.pdb', 'hangtime.ini', '.log', 'captures', 'full_generated', 'audio_rsp_generated', 'game_build')
+FORBIDDEN = ('full.toml', 'full.symbols.toml', 'full_inventory', 'hangtime_game', '.z64', '.n64', '.v64', '.map', '.pdb', 'hangtime.ini', '.log', 'captures', 'full_generated', 'audio_rsp_generated', 'game_build')
 
 README = """NBA Hangtime Recompiled - PC runtime {ver}
 

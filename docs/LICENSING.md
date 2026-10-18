@@ -44,8 +44,11 @@ contains no ROM bytes) used by `check_public.py`.
 
 A release package contains the runtime (GPL-3.0 as a whole), separate third-party files (SDL2,
 the DirectX Shader Compiler, the Roboto font), and the first-start build kit: N64Recomp and
-RSPRecomp (MIT), the Zig toolchain (MIT, with bundled libraries under their own licenses), our
-configuration and the headers the generated code compiles against. Each package includes
+RSPRecomp (MIT), the Zig toolchain (MIT, with bundled libraries under their own licenses), the
+audio microcode's configuration and the headers the generated code compiles against. Packages
+contain no function tables: the runtime computes the function partition and hooks from the
+player's ROM on their machine (`full_runtime/partition.cpp`, checked byte for byte against the
+generators by `verify_partition.py`). Each package includes
 `LICENSES/`, `THIRD_PARTY.md` and the source location of the release.
 
 ## Open items before the first release
