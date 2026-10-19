@@ -31,6 +31,7 @@ std::string launcher_sha256_hex(const std::vector<uint8_t>& data);
 bool launcher_load_rom(const std::filesystem::path& path, std::vector<uint8_t>& rom, std::string& error);
 std::optional<std::filesystem::path> launcher_pick_rom();
 void launcher_setup_log(bool console);
-bool launcher_restart(const std::vector<std::string>& args);   // start this executable again with args
+// Starts this executable (or `exe`, e.g. a newly installed one) again with args.
+bool launcher_restart(const std::vector<std::string>& args, const std::filesystem::path& exe = {});
 extern const char* const HANGTIME_ROM_SHA256;
 extern const char* const HANGTIME_VERSION;

@@ -194,6 +194,12 @@ def main():
         with zipfile.ZipFile(z, 'w', zipfile.ZIP_DEFLATED) as zf:
             for f in sorted(d.rglob('*')):
                 if f.is_file(): zf.write(f, f.relative_to(out))
+    # SHA256SUMS.txt beside the packages (sha256sum format), uploaded with a release: the launcher's
+    # updater checks a download against it when GitHub publishes no digest (update_check.hpp).
+    sums_file = out / 'SHA256SUMS.txt'
+    sums = {l[66:]: l for l in (sums_file.read_text(encoding='utf-8').splitlines() if sums_file.exists() else []) if len(l) > 66}
+    sums[z.name] = hashlib.sha256(z.read_bytes()).hexdigest() + '  ' + z.name
+    sums_file.write_text(''.join(sums[k] + '\n' for k in sorted(sums)), encoding='utf-8')
     print(f'package: {z} ({z.stat().st_size // 1024} KiB), {sum(1 for f in d.rglob("*") if f.is_file())} files; '
           f'INTERNAL={INTERNAL or bool(missing)}; missing license texts: {missing or "none"}')
 

@@ -75,11 +75,16 @@ gamepad left stick or D-pad, **A** shoot, **B** pass, **RB/RT** turbo, **Start**
 16:9, F11 fullscreen, F1 back to the launcher. Settings are kept in `hangtime.ini` beside the
 program (or in your user folder when that is not writable).
 
-Update check: when the launcher opens it asks GitHub (api.github.com, one anonymous HTTPS
-request, no personal data) for this project's latest release and compares it with your version.
-Nothing is downloaded or installed: the UPDATE AVAILABLE tile opens the release page in your
-browser. Turn the automatic check off under ABOUT (or `update_check=0` in `hangtime.ini`); on
-Linux it uses the system's `curl`.
+Updates: when the launcher opens it asks GitHub (api.github.com, one anonymous HTTPS request,
+no personal data) for this project's latest release. When it is newer, the tile reads **UPDATE
+AVAILABLE**; selecting it shows the release notes and **Install and restart**, which downloads
+your system's package from that release, checks it against the SHA-256 GitHub publishes for it
+(nothing is installed without a matching checksum), replaces the program files in place and
+restarts. Your ROM, `hangtime.ini` and `saves/` are kept; replaced files are restored if anything
+fails. When the update brings a new first-start build kit, the game files are prepared from your
+ROM again on the next PLAY. Turn the automatic check off under ABOUT (or `update_check=0`); on
+Linux the system's `curl` and `tar` are used. If the program folder is not writable, the tile
+opens the release page instead.
 
 | File or folder (beside the program) | What it is |
 |---|---|
@@ -88,6 +93,7 @@ Linux it uses the system's `curl`.
 | `hangtime_game.dll` / `.so` | the game code generated from your ROM on first start; never share it |
 | `game_build/build.log` | log of that first-start build |
 | `hangtime.log` | run log (Windows) |
+| `.update/` | only during an update: the download and the replaced files, removed at the next start |
 | `setup/`, `tools/` | the first-start build kit: configuration, N64Recomp, RSPRecomp, Zig |
 
 ## Building from source

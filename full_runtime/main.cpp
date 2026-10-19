@@ -593,6 +593,15 @@ int main(int argc, char** argv) {
             printf("partition: %zu functions\n", part.functions);
             return 0;
         }
+        else if (!strcmp(argv[i], "--install-update")) {   // tests: check, then install in place (no restart)
+            const std::string repo = update_repo(i + 1 < argc && argv[i + 1][0] != '-' ? argv[++i] : "");
+            const UpdateStatus r = update_check_now(repo);
+            const UpdateInstallStatus in = update_install_now(repo, r);
+            printf("UPDATE install repo=%s latest=%s asset=%s result=%s%s%s\n", repo.c_str(), r.latest.c_str(), r.asset.name.c_str(),
+                   in.state == UpdateInstallStatus::Done ? "installed" : "failed", in.error.empty() ? "" : " error=", in.error.c_str());
+            fflush(stdout);
+            return in.state == UpdateInstallStatus::Done ? 0 : 2;
+        }
         else if (!strcmp(argv[i], "--check-update")) {   // tests: the launcher's update check, printed (no ROM, no window)
             const std::string repo = update_repo(i + 1 < argc && argv[i + 1][0] != '-' ? argv[++i] : "");
             const UpdateStatus r = update_check_now(repo);
@@ -728,6 +737,7 @@ int main(int argc, char** argv) {
             fprintf(stderr, "GAMEPAD unsupported: \"%s\" vid=%04x pid=%04x guid=%s (no controller mapping; see README)\n",
                     SDL_JoystickNameForIndex(i), SDL_JoystickGetDeviceVendor(i), SDL_JoystickGetDeviceProduct(i), guid);
         }
+    if (!background) update_cleanup();   // files the last update replaced (update_check.hpp)
     if (!background && !no_launcher && (force_launcher || !settings.skip_launcher)) {
         if (!rom_path.empty()) settings.rom = std::filesystem::absolute(rom_path);   // e.g. a ROM dropped on the exe
         if (run_launcher(settings) == LauncherResult::Quit) { SDL_Quit(); return 0; }

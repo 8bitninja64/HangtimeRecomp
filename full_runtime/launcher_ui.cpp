@@ -24,8 +24,8 @@
 
 namespace {
 constexpr float VW = 1600, VH = 900;           // virtual canvas
-enum Page { MAIN, GRAPHICS, CONTROLS, CHEATS, AUDIO, FILES, ABOUT };
-const char* const PAGE_TITLE[] = {"", "GRAPHICS", "CONTROLS", "CHEATS", "AUDIO", "GAME FILES", "ABOUT"};
+enum Page { MAIN, GRAPHICS, CONTROLS, CHEATS, AUDIO, FILES, ABOUT, UPDATE };
+const char* const PAGE_TITLE[] = {"", "GRAPHICS", "CONTROLS", "CHEATS", "AUDIO", "GAME FILES", "ABOUT", "UPDATE"};
 
 ImU32 rgba(int r, int g, int b, int a = 255) { return IM_COL32(r, g, b, a); }
 const ImU32 GOLD = rgba(255, 196, 40), ORANGE = rgba(255, 128, 20), NAVY = rgba(14, 22, 52), PANEL = rgba(20, 34, 78, 235),
@@ -44,6 +44,8 @@ struct Ui {
     InputBindings bind;
     std::string rebind_id; int rebind_device = 0;    // 1 keyboard, 2 gamepad
     bool rebind_wait_release = false;
+    bool update_focus = false;     // UPDATE page just opened: focus its Install button
+    bool restart = false;          // an update was installed: start the new version on exit
     ImVec2 P(float x, float y) const { return {ox + x * s, oy + y * s}; }
     float S(float v) const { return v * s; }
 };
@@ -186,11 +188,19 @@ const char* update_label(const UpdateStatus& st) {
         default: return "CHECK UPDATES";
     }
 }
-// Activating the tile: an available update opens its release page; otherwise check (again).
-void update_activate(const LauncherSettings& s) {
+// Activating the tile: an available update opens the UPDATE page (install in place) or, when it
+// cannot be installed here, its release page; otherwise check (again).
+void update_activate(Ui& u, const LauncherSettings& s) {
     const UpdateStatus st = update_check_status();
-    if (st.state == UpdateStatus::Available) SDL_OpenURL(update_release_page(update_repo_of(s)).c_str());
-    else if (st.state != UpdateStatus::Checking) update_check_start(update_repo_of(s));
+    std::string why;
+    if (st.state == UpdateStatus::Available) {
+        if (update_can_install(st, why)) { u.page = UPDATE; u.update_focus = true; ImGui::SetWindowFocus(nullptr); }
+        else SDL_OpenURL(st.page.c_str());
+    } else if (st.state != UpdateStatus::Checking) update_check_start(update_repo_of(s));
+}
+bool update_installing() {
+    const auto st = update_install_status().state;
+    return st != UpdateInstallStatus::Idle && st != UpdateInstallStatus::Failed;
 }
 void draw_update_tile(Ui& u, const LauncherSettings& s, bool selected, float time) {
     const UpdateStatus st = update_check_status();
@@ -215,7 +225,11 @@ void draw_update_tile(Ui& u, const LauncherSettings& s, bool selected, float tim
     text(u, 32, t.x + 96, t.y + 14, avail ? rgba(150, 255, 170) : selected ? GOLD : TEXT, update_label(st), 0, 2);
     std::string sub;
     switch (st.state) {
-        case UpdateStatus::Available: sub = "Select to get " + st.latest + " (opens GitHub)"; break;
+        case UpdateStatus::Available: {
+            std::string why;
+            sub = update_can_install(st, why) ? "Select to install " + st.latest : "Select to download " + st.latest + " (GitHub)";
+            break;
+        }
         case UpdateStatus::UpToDate: sub = "v" + std::string(HANGTIME_VERSION) + " is the latest release"; break;
         case UpdateStatus::NoReleases: sub = "No published release found"; break;
         case UpdateStatus::Failed: sub = "Could not check: " + st.error; break;
@@ -482,7 +496,7 @@ void page_about(Ui& u, LauncherSettings& s) {
             if (autocheck) update_check_start(update_repo_of(s));
         }
         ImGui::SameLine(); if (ImGui::Button("Check now")) update_check_start(update_repo_of(s));
-        ImGui::TextColored(ImColor(DIM), "Asks github.com/%s for its latest release (no personal data; nothing is downloaded).", update_repo_of(s).c_str());
+        ImGui::TextColored(ImColor(DIM), "Asks github.com/%s for its latest release (no personal data); an update installs only when you choose it.", update_repo_of(s).c_str());
         ImGui::TextColored(ImColor(DIM), "%s",   // no build timestamp: builds are reproducible
 #ifdef _WIN32
                            "Windows x64, Direct3D 12"
@@ -503,6 +517,39 @@ void page_about(Ui& u, LauncherSettings& s) {
         ImGui::TextWrapped("Unofficial project. NBA Hangtime and the names of the NBA and its teams are trademarks of their "
                            "owners, used only to identify the game this program needs. Not affiliated with or endorsed by "
                            "the NBA, Midway, Williams, Nintendo or any other rights holder.");
+    });
+}
+
+void page_update(Ui& u, LauncherSettings& s) {
+    const UpdateStatus st = update_check_status();
+    const UpdateInstallStatus in = update_install_status();
+    panel(u, [&] {
+        ImGui::TextColored(ImColor(rgba(150, 255, 170)), "%s %s is available", HANGTIME_PRODUCT_NAME, st.latest.c_str());
+        ImGui::SameLine(); ImGui::TextColored(ImColor(DIM), "(you have v%s)", HANGTIME_VERSION);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImColor(DIM).Value);
+        ImGui::TextWrapped("Downloads %s (%.1f MB) from GitHub, checks its SHA-256, installs it here and restarts. "
+                           "Your ROM, settings and saves are kept.", st.asset.name.c_str(), st.asset.size / 1048576.0);
+        ImGui::PopStyleColor();
+        if (in.state == UpdateInstallStatus::Idle || in.state == UpdateInstallStatus::Failed) {
+            if (ImGui::Button("Install and restart")) update_install_start(update_repo_of(s), st);
+            if (u.update_focus) {   // keyboard / gamepad: the page opens with Install selected
+                ImGui::FocusWindow(ImGui::GetCurrentWindow());
+                ImGui::SetFocusID(ImGui::GetItemID(), ImGui::GetCurrentWindow());
+                ImGui::SetNavCursorVisibleAfterMove();
+                u.update_focus = false;
+            }
+            ImGui::SameLine(); if (ImGui::Button("Release notes on GitHub")) SDL_OpenURL(st.page.c_str());
+            ImGui::SameLine(); if (ImGui::Button("Not now")) u.page = MAIN;
+            if (in.state == UpdateInstallStatus::Failed)
+                ImGui::TextColored(ImColor(rgba(240, 110, 90)), "Not installed: %s. This version is unchanged.", in.error.c_str());
+        } else {
+            static const char* const step[] = {"", "Downloading", "Checking the download", "Unpacking", "Installing", "Installed - restarting", ""};
+            ImGui::ProgressBar(in.state == UpdateInstallStatus::Downloading ? in.fraction : 1.0f, {-1, 0});
+            ImGui::TextUnformatted(step[in.state]);
+        }
+        ImGui::Separator();
+        ImGui::TextColored(ImColor(GOLD), "What's new");
+        ImGui::TextWrapped("%s", st.notes.empty() ? "(no release notes)" : st.notes.c_str());
     });
 }
 
@@ -575,7 +622,7 @@ LauncherResult run_launcher(LauncherSettings& s) {
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             ImGui_ImplSDL2_ProcessEvent(&e);
-            if (e.type == SDL_QUIT) running = false;
+            if (e.type == SDL_QUIT && !update_installing()) running = false;   // an installation finishes first
             if (e.type == SDL_CONTROLLERDEVICEADDED && !u.pad) u.pad = SDL_GameControllerOpen(e.cdevice.which);
             if (e.type == SDL_CONTROLLERBUTTONDOWN || e.type == SDL_CONTROLLERBUTTONUP) {   // gamepad -> ImGui navigation
                 static const std::pair<int, ImGuiKey> m[] = {{SDL_CONTROLLER_BUTTON_A, ImGuiKey_GamepadFaceDown}, {SDL_CONTROLLER_BUTTON_B, ImGuiKey_GamepadFaceRight},
@@ -600,11 +647,12 @@ LauncherResult run_launcher(LauncherSettings& s) {
                 if (n == N_OK) {
                     if (u.sel == 0) { if (u.rom_ok) { result = LauncherResult::Play; running = false; } else { u.message = "Select your NBA Hangtime ROM first."; open_page(u, s, 5); } }
                     else if (u.sel == SKIP_ITEM) s.skip_launcher = !s.skip_launcher;
-                    else if (u.sel == UPDATE_ITEM) update_activate(s);
+                    else if (u.sel == UPDATE_ITEM) update_activate(u, s);
                     else open_page(u, s, u.sel);
                 } else if (n == N_BACK) running = false;
                 else if (n) u.sel = main_move(u.sel, n);
-            } else if (n == N_BACK && u.rebind_id.empty() && !ImGui::IsAnyItemActive() && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)) {
+            } else if (n == N_BACK && u.rebind_id.empty() && !ImGui::IsAnyItemActive() && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId)
+                       && !(u.page == UPDATE && update_installing())) {
                 u.page = MAIN; u.message.clear();
             }
         }
@@ -643,7 +691,7 @@ LauncherResult run_launcher(LauncherSettings& s) {
                     if (ImGui::IsMouseClicked(0)) {
                         if (i == 0) { if (u.rom_ok) { result = LauncherResult::Play; running = false; } else { u.message = "Select your NBA Hangtime ROM first."; open_page(u, s, 5); } }
                         else if (skip) s.skip_launcher = !s.skip_launcher;
-                        else if (i == UPDATE_ITEM) update_activate(s);
+                        else if (i == UPDATE_ITEM) update_activate(u, s);
                         else open_page(u, s, i);
                     }
                 }
@@ -662,7 +710,8 @@ LauncherResult run_launcher(LauncherSettings& s) {
             switch (u.page) {
                 case GRAPHICS: page_graphics(u, s); break; case CONTROLS: page_controls(u, s); break;
                 case CHEATS: page_cheats(u, s); break; case AUDIO: page_audio(u, s); break;
-                case FILES: page_files(u, s); break; case ABOUT: page_about(u, s); break; default: break;
+                case FILES: page_files(u, s); break; case ABOUT: page_about(u, s); break;
+                case UPDATE: page_update(u, s); break; default: break;
             }
             hints(u, "SELECT", "BACK");
         }
@@ -671,6 +720,10 @@ LauncherResult run_launcher(LauncherSettings& s) {
         SDL_RenderClear(u.renderer);
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), u.renderer);
         SDL_RenderPresent(u.renderer);
+        if (update_install_status().state == UpdateInstallStatus::Done && !u.restart) {   // show "restarting" briefly, then go
+            static uint32_t done_at = SDL_GetTicks();
+            if (SDL_GetTicks() - done_at > 1200) { u.restart = true; result = LauncherResult::Quit; running = false; }
+        }
     }
     launcher_save_settings(s);
     ImGui_ImplSDLRenderer2_Shutdown();
@@ -679,6 +732,7 @@ LauncherResult run_launcher(LauncherSettings& s) {
     if (u.pad) SDL_GameControllerClose(u.pad);
     SDL_DestroyRenderer(u.renderer);
     SDL_DestroyWindow(u.window);
+    if (u.restart) update_restart();   // the new version opens its launcher; this process exits
     return result;
 }
 

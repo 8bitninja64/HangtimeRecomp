@@ -194,17 +194,18 @@ void launcher_setup_log(bool console) {
     setvbuf(stderr, nullptr, _IONBF, 0);  // a killed process must not lose the log
 }
 
-bool launcher_restart(const std::vector<std::string>& args) {
+bool launcher_restart(const std::vector<std::string>& args, const fs::path& exe_path) {
 #ifdef _WIN32
-    wchar_t exe[MAX_PATH]; GetModuleFileNameW(nullptr, exe, MAX_PATH);
-    std::wstring cmd = L"\"" + std::wstring(exe) + L"\"";
+    wchar_t self[MAX_PATH]; GetModuleFileNameW(nullptr, self, MAX_PATH);
+    const std::wstring exe = exe_path.empty() ? std::wstring(self) : exe_path.wstring();
+    std::wstring cmd = L"\"" + exe + L"\"";
     for (const auto& a : args) { cmd += L" \""; cmd += fs::u8path(a).wstring(); cmd += L"\""; }
     STARTUPINFOW si{sizeof(si)}; PROCESS_INFORMATION pi{};
-    if (!CreateProcessW(exe, cmd.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi)) return false;
+    if (!CreateProcessW(exe.c_str(), cmd.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi)) return false;
     CloseHandle(pi.hThread); CloseHandle(pi.hProcess);
     return true;
 #else
-    const std::string exe = launcher_utf8(fs::read_symlink("/proc/self/exe"));
+    const std::string exe = launcher_utf8(exe_path.empty() ? fs::read_symlink("/proc/self/exe") : exe_path);
     if (fork() == 0) {
         std::vector<char*> argv{const_cast<char*>(exe.c_str())};
         for (const auto& a : args) argv.push_back(const_cast<char*>(a.c_str()));
