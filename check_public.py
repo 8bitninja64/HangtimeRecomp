@@ -82,7 +82,7 @@ def main():
             for m in PERSONAL.finditer(data):
                 if not PERSONAL_OK.search(m.group(0)): bad(f'personal/absolute path {m.group(0)[:40]!r}')
             for m in EMAIL.finditer(data):
-                if not EMAIL_OK.search(m.group(0)) and not rel.startswith('vendor/'): bad(f'e-mail address {m.group(0)!r}')
+                if not EMAIL_OK.search(m.group(0)) and not rel.startswith(('vendor/', 'third_party/')): bad(f'e-mail address {m.group(0)!r}')
             if fps:
                 hits = rom_hits(data, fps)
                 words = b''.join(bytes.fromhex(m.decode()) for m in HEXWORD.findall(data))

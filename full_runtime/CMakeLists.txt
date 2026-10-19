@@ -149,6 +149,9 @@ if (NOT WIN32)
     add_custom_command(TARGET hangtime POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:hangtime>/assets"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${RT64}/src/contrib/imgui/misc/fonts/Roboto-Medium.ttf" "$<TARGET_FILE_DIR:hangtime>/assets/")
+    # Controller mappings beyond SDL's built-in list (SDL_GameControllerDB, zlib; main.cpp loads it).
+    add_custom_command(TARGET hangtime POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${NATIVE}/third_party/SDL_GameControllerDB/gamecontrollerdb.txt" "$<TARGET_FILE_DIR:hangtime>/")
     return()
 endif()
 target_link_libraries(hangtime PRIVATE
@@ -173,3 +176,6 @@ target_link_options(hangtime PRIVATE /MAP)
 add_custom_command(TARGET hangtime POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:hangtime>/assets"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${RT64}/src/contrib/imgui/misc/fonts/Roboto-Medium.ttf" "$<TARGET_FILE_DIR:hangtime>/assets/")
+# Controller mappings beyond SDL's built-in list (SDL_GameControllerDB, zlib; main.cpp loads it).
+add_custom_command(TARGET hangtime POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${NATIVE}/third_party/SDL_GameControllerDB/gamecontrollerdb.txt" "$<TARGET_FILE_DIR:hangtime>/")

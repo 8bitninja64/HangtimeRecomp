@@ -61,6 +61,11 @@ Verified by automated tests that drive the real game (see [docs/TESTING.md](docs
 3. The first start prepares the game files from your ROM (a progress window; nothing is
    downloaded, your ROM is not changed). Later starts go straight to the launcher.
 
+Gamepads: Xbox, PlayStation, Switch Pro, 8BitDo and hundreds of others work through SDL and the
+bundled `gamecontrollerdb.txt` (SDL_GameControllerDB). If yours is not recognized, `hangtime.log`
+names it ("GAMEPAD unsupported"); a mapping line in a `gamecontrollerdb.txt` in your settings folder
+adds it.
+
 Default controls: arrows move, **S** shoot, **D** pass, **X**/Shift/Space turbo, **Enter** start;
 gamepad left stick or D-pad, **A** shoot, **B** pass, **RB/RT** turbo, **Start**. F10 toggles
 16:9, F11 fullscreen, F1 back to the launcher. Settings are kept in `hangtime.ini` beside the

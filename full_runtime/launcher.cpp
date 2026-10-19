@@ -179,7 +179,9 @@ void launcher_setup_log(bool console) {
 #ifdef _WIN32
     if (console && AttachConsole(ATTACH_PARENT_PROCESS)) { freopen("CONOUT$", "w", stderr); freopen("CONOUT$", "w", stdout); return; }
     const HANDLE h = GetStdHandle(STD_ERROR_HANDLE);
-    if (h && h != INVALID_HANDLE_VALUE && GetFileType(h) != FILE_TYPE_UNKNOWN) return;  // redirected by the caller
+    // Redirected by the caller to a file or pipe (tests): keep it. A character device here is NUL
+    // (shortcuts, launchers), where the log would be lost, so it goes to hangtime.log instead.
+    if (h && h != INVALID_HANDLE_VALUE && (GetFileType(h) == FILE_TYPE_DISK || GetFileType(h) == FILE_TYPE_PIPE)) return;
     const fs::path log = launcher_data_dir() / "hangtime.log";
     _wfreopen(log.c_str(), L"w", stderr);
 #else

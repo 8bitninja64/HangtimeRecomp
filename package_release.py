@@ -1,7 +1,12 @@
 """Assemble and scan a distribution package of the runtime (RELEASE_LEGAL.md).
 
-usage: python package_release.py [--out dist]          (Windows)
-       python3 package_release.py --linux [--out DIR]  (Linux / WSL; BUILD_DIR, N64RECOMP_BUILD, ZIG_DIR)
+usage: python package_release.py [--out dist] [--personal]          (Windows)
+       python3 package_release.py --linux [--out DIR] [--personal]  (Linux / WSL; BUILD_DIR, N64RECOMP_BUILD, ZIG_DIR)
+
+--personal: a ready-to-play package like other recompilation projects ship (Rush2Recompiled): the
+runtime plus the game module already built from the owner's ROM, no first-start build kit (about
+30 MB instead of 330). It contains game code generated from the ROM, so it is for the ROM owner's
+own devices only (NOTICE.txt, "-PERSONAL" suffix); never upload or share it (RELEASE_LEGAL.md).
 
 Windows: copies the runtime (full_runtime/build/Release: hangtime.exe, SDL2.dll, dxcompiler.dll,
 dxil.dll, assets/Roboto-Medium.ttf, hangtime.lib for the player-side module build), license texts,
@@ -17,7 +22,7 @@ generated sources, the ROM, settings, logs or symbol maps, and then scans the re
 The package stays INTERNAL (NOTICE.txt, folder suffix) while RELEASE_LEGAL.md's open questions are
 unresolved; that flag is set here and must be removed deliberately after review.
 """
-import hashlib, os, random, shutil, sys, tarfile, zipfile
+import hashlib, os, random, shutil, subprocess, sys, tarfile, zipfile
 from pathlib import Path
 
 P = Path(__file__).resolve().parent
@@ -27,6 +32,7 @@ ROOT = P.parent
 VER = '0.1.0'
 INTERNAL = True   # RELEASE_LEGAL.md "Open questions" unresolved
 LINUX = '--linux' in sys.argv
+PERSONAL = '--personal' in sys.argv
 EXE = '' if LINUX else '.exe'
 def _env_or(var, *candidates):
     if os.environ.get(var): return Path(os.environ[var])
@@ -67,13 +73,30 @@ def package_components():
     out = []
     for name, ver, spdx, cr, prod, lic, note in third_party.COMPONENTS:
         if not any(k in prod for k in ('runtime', 'package')): continue
+        if PERSONAL and ('tools/' in prod or name == 'Zig'): continue   # no first-start build kit
         if LINUX and (prod.startswith('package (Windows)') or prod == 'runtime (Windows)'): continue
         root = third_party.roots().get(lic[0]) if lic else None
         path = ZIG_DIR / 'LICENSE' if name == 'Zig' else (root / lic[1] if lic else None)
         out.append((f'{name} {ver}'.strip(), spdx, path, note))
     return out
-FILES = ['hangtime', 'assets/Roboto-Medium.ttf'] if LINUX else         ['hangtime.exe', 'SDL2.dll', 'dxcompiler.dll', 'dxil.dll', 'hangtime.lib', 'assets/Roboto-Medium.ttf']
+FILES = ['hangtime', 'assets/Roboto-Medium.ttf', 'gamecontrollerdb.txt'] if LINUX else         ['hangtime.exe', 'SDL2.dll', 'dxcompiler.dll', 'dxil.dll', 'hangtime.lib', 'assets/Roboto-Medium.ttf', 'gamecontrollerdb.txt']
 FORBIDDEN = ('full.toml', 'full.symbols.toml', 'full_inventory', 'hangtime_game', '.z64', '.n64', '.v64', '.map', '.pdb', 'hangtime.ini', '.log', 'captures', 'full_generated', 'audio_rsp_generated', 'game_build')
+
+README_PERSONAL = """HangtimeRecomp {ver} - unofficial PC port of NBA Hangtime (Nintendo 64)
+
+Unofficial fan project. Not affiliated with, endorsed or sponsored by the NBA, Midway, Nintendo or
+any other rights holder. All trademarks belong to their owners.
+
+PERSONAL BUILD: this package contains game code generated from its owner's own NBA Hangtime (USA)
+ROM (hangtime_game.{module_ext}). It is for that person's own computers only. Do not upload, share or
+distribute it.
+
+Requirements: {requirements}
+
+Start: run {exe} and choose your NBA Hangtime (USA) ROM (.z64/.n64/.v64; SHA-256 checked), or put
+it beside the program as "NBA Hangtime (USA).z64". Settings are stored in hangtime.ini beside it (or
+in your user folder). License texts of the included components: LICENSES/ and THIRD_PARTY.md.
+"""
 
 README = """HangtimeRecomp {ver} - unofficial PC port of NBA Hangtime (Nintendo 64)
 
@@ -96,26 +119,33 @@ License texts of the included components: LICENSES/ and THIRD_PARTY.md.
 
 def main():
     out = Path(sys.argv[sys.argv.index('--out') + 1]) if '--out' in sys.argv else P / 'dist'
-    name = f'HangtimeRecomp-{"linux-x86_64" if LINUX else "win64"}-{VER}' + ('-INTERNAL' if INTERNAL else '')
+    name = f'HangtimeRecomp-{"linux-x86_64" if LINUX else "win64"}-{VER}' + ('-PERSONAL' if PERSONAL else '-INTERNAL' if INTERNAL else '')
     d = out / name
     if d.exists(): shutil.rmtree(d)
     (d / 'LICENSES').mkdir(parents=True)
-    for f in FILES:
+    module = 'hangtime_game.so' if LINUX else 'hangtime_game.dll'
+    files = [f for f in FILES if f != 'hangtime.lib'] + [module] if PERSONAL else FILES
+    for f in files:
         src = BUILD / f
         assert src.exists(), f'missing build output {src} (run build_full.py)'
         (d / f).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, d / f)
-    for pub, src in SDK.items():
+        # Linux builds carry debug info (78 MB -> 6 MB): strip it, keeping the dynamic symbols
+        # the game module links against and crash backtraces use.
+        if LINUX and f in ('hangtime', 'hangtime_game.so') and shutil.which('strip'):
+            subprocess.run(['strip', '--strip-unneeded', str(d / f)], check=True)
+    for pub, src in ({} if PERSONAL else SDK).items():
         assert src.exists(), f'missing {src}'
         (d / 'setup/sdk' / pub).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, d / 'setup/sdk' / pub)
-    for pub, src in SETUP.items():
+    for pub, src in ({} if PERSONAL else SETUP).items():
         assert src.exists(), f'missing {src} (run build_full.py: prepare_full.py writes it)'
         shutil.copy2(src, d / 'setup' / pub)
-    (d / 'tools').mkdir(exist_ok=True)
-    for exe in ('N64Recomp' + EXE, 'RSPRecomp' + EXE): shutil.copy2(N64RECOMP_BIN / exe, d / 'tools' / exe)
-    assert (ZIG_DIR / ('zig' + EXE)).exists(), f'Zig not found at {ZIG_DIR}'
-    copy_zig(ZIG_DIR, d / 'tools/zig')
+    if not PERSONAL:   # the first-start build kit
+        (d / 'tools').mkdir(exist_ok=True)
+        for exe in ('N64Recomp' + EXE, 'RSPRecomp' + EXE): shutil.copy2(N64RECOMP_BIN / exe, d / 'tools' / exe)
+        assert (ZIG_DIR / ('zig' + EXE)).exists(), f'Zig not found at {ZIG_DIR}'
+        copy_zig(ZIG_DIR, d / 'tools/zig')
     missing, rows = [], ['# Third-party components in this package', '', '| component | license | text |', '|---|---|---|']
     for comp, lic, path, note in package_components():
         if path and path.exists():
@@ -131,7 +161,7 @@ def main():
         if 'OPEN' in note and comp not in missing: missing.append(comp + ' (open question)')
     # Zig's bundled glibc (LGPL-2.1-or-later) and Linux UAPI headers (GPL-2.0 WITH Linux-syscall-note)
     # refer to these texts without shipping them; the standard texts from RT64's Mupen64Plus docs.
-    for text, lic_name in (('lgpl-license', 'LGPL-2.1.txt'), ('gpl-license', 'GPL-2.0.txt')):
+    for text, lic_name in (() if PERSONAL else (('lgpl-license', 'LGPL-2.1.txt'), ('gpl-license', 'GPL-2.0.txt'))):
         src = third_party.roots()['rt64'] / 'src/contrib/mupen64plus-core/doc' / text
         if src.exists(): shutil.copy2(src, d / 'LICENSES' / lic_name)
         else: missing.append(f'{lic_name} (for tools/zig)')
@@ -145,9 +175,15 @@ def main():
     requirements = (f'x86_64 Linux with glibc {glibc_needed(BUILD / "hangtime")} or newer, SDL2, GTK 3 and a Vulkan '
                     '1.2 driver (Debian/Ubuntu: libsdl2-2.0-0 libgtk-3-0 libvulkan1).' if LINUX else
                     '64-bit Windows 10/11, Microsoft Visual C++ Redistributable 2015-2022 (x64).')
-    (d / 'README.txt').write_text(README.format(ver=VER, status=status, requirements=requirements,
-                                                exe='./hangtime' if LINUX else 'hangtime.exe'), encoding='utf-8')
-    if INTERNAL or missing:
+    if PERSONAL:
+        (d / 'README.txt').write_text(README_PERSONAL.format(ver=VER, requirements=requirements, module_ext='so' if LINUX else 'dll',
+                                                             exe='./hangtime' if LINUX else 'hangtime.exe'), encoding='utf-8')
+        (d / 'NOTICE.txt').write_text('PERSONAL BUILD - contains game code generated from its owner\'s own ROM.\n'
+                                      'For the ROM owner\'s own devices only. Do not upload, share or distribute.\n', encoding='utf-8')
+    else:
+        (d / 'README.txt').write_text(README.format(ver=VER, status=status, requirements=requirements,
+                                                    exe='./hangtime' if LINUX else 'hangtime.exe'), encoding='utf-8')
+    if (INTERNAL or missing) and not PERSONAL:
         (d / 'NOTICE.txt').write_text('INTERNAL BUILD - DO NOT DISTRIBUTE.\nMissing license texts: ' + (', '.join(missing) or 'none') + '\n', encoding='utf-8')
     scan(d)
     if LINUX:   # tar keeps the executable bits and Zig's symlinks
@@ -202,7 +238,8 @@ def glibc_needed(elf):
 
 def scan(d):
     files = [f for f in d.rglob('*') if f.is_file()]
-    bad = [f for f in files if any(x in str(f.relative_to(d)).lower() for x in FORBIDDEN)]
+    forbidden = tuple(x for x in FORBIDDEN if not (PERSONAL and x == 'hangtime_game'))
+    bad = [f for f in files if any(x in str(f.relative_to(d)).lower() for x in forbidden)]
     assert not bad, f'forbidden files in package: {bad}'
     if not hangtime_paths.rom_path().exists():
         print('scan: ROM not available here, ROM-window check skipped'); return

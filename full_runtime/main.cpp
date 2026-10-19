@@ -678,12 +678,27 @@ int main(int argc, char** argv) {
     // Test runs (--background) neither read nor write the player's settings and skip the launcher.
     LauncherSettings settings = background ? LauncherSettings{} : launcher_load_settings();
     SDL_SetMainReady();
-    if (background) {  // unfocused test window: SDL would otherwise drop joystick state changes
-        if (!focus) SDL_SetHint(SDL_HINT_WINDOW_NO_ACTIVATION_WHEN_SHOWN, "1");
-        SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
-    }
+    if (background && !focus) SDL_SetHint(SDL_HINT_WINDOW_NO_ACTIVATION_WHEN_SHOWN, "1");   // unfocused test window
+    // Gamepads keep working when SDL believes the window is not focused (exclusive fullscreen,
+    // overlays, test windows); otherwise SDL drops their state changes.
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
     SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) != 0) { message_box(SDL_GetError()); return 1; }
+    // Controller mappings beyond SDL's built-in list (SDL_GameControllerDB format): the shipped
+    // gamecontrollerdb.txt beside the program, then the player's own in the data folder (it can add
+    // or override mappings). Pads SDL still cannot map are logged so they can be reported.
+    for (const auto& db : {launcher_exe_dir() / "gamecontrollerdb.txt", launcher_data_dir() / "gamecontrollerdb.txt"}) {
+        if (!std::filesystem::exists(db)) continue;
+        const int added = SDL_GameControllerAddMappingsFromFile(launcher_utf8(db).c_str());
+        fprintf(stderr, "GAMEPAD mappings %s: %d\n", launcher_utf8(db).c_str(), added);
+        if (db.parent_path() == launcher_data_dir()) break;   // same folder (portable install)
+    }
+    for (int i = 0; i < SDL_NumJoysticks(); ++i)
+        if (!SDL_IsGameController(i)) {
+            char guid[33]; SDL_JoystickGetGUIDString(SDL_JoystickGetDeviceGUID(i), guid, sizeof guid);
+            fprintf(stderr, "GAMEPAD unsupported: \"%s\" vid=%04x pid=%04x guid=%s (no controller mapping; see README)\n",
+                    SDL_JoystickNameForIndex(i), SDL_JoystickGetDeviceVendor(i), SDL_JoystickGetDeviceProduct(i), guid);
+        }
     if (!background && !no_launcher && (force_launcher || !settings.skip_launcher)) {
         if (!rom_path.empty()) settings.rom = std::filesystem::absolute(rom_path);   // e.g. a ROM dropped on the exe
         if (run_launcher(settings) == LauncherResult::Quit) { SDL_Quit(); return 0; }
