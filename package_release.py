@@ -180,7 +180,8 @@ def main():
               if INTERNAL or missing else f'public pre-release {VER} (unofficial fan project)')
     requirements = (f'x86_64 Linux with glibc {glibc_needed(BUILD / "hangtime")} or newer, SDL2, GTK 3 and a Vulkan '
                     '1.2 driver (Debian/Ubuntu: libsdl2-2.0-0 libgtk-3-0 libvulkan1).' if LINUX else
-                    '64-bit Windows 10/11, Microsoft Visual C++ Redistributable 2015-2022 (x64).')
+                    '64-bit Windows 10/11. If Windows reports VCRUNTIME140.dll missing, install the Microsoft Visual C++ '
+                    'Redistributable (x64): https://aka.ms/vs/17/release/vc_redist.x64.exe')
     if PERSONAL:
         (d / 'README.txt').write_text(README_PERSONAL.format(ver=VER, requirements=requirements, module_ext='so' if LINUX else 'dll',
                                                              exe='./hangtime' if LINUX else 'hangtime.exe'), encoding='utf-8')
