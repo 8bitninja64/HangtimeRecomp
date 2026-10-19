@@ -102,10 +102,10 @@ LIBULTRA = {
     0x8006BC2C: ('__osPackReadData', 'S called by osContStartReadData', 'high'),
     0x8006BF18: ('__osContGetInitData', 'S osContInit helper', 'medium'),
     0x8006BFE8: ('__osPackRequestData', 'S osContInit helper', 'medium'),
-    0x8006C0E0: ('osPfsIsPlug', 'H main_pak_query', 'high'),
-    0x8006C450: ('osPfsInitPak', 'S __osSiGetAccess,__osPfsGetStatus,__osSiRelAccess,__osGetId; called after osPfsIsPlug by all 8 game pak paths', 'medium'),
-    0x8006C280: ('__osPfsRequestData', 'S osPfsIsPlug helper', 'medium'),
-    0x8006C37C: ('__osPfsGetInitData', 'S osPfsIsPlug helper', 'medium'),
+    # Controller Pak (osPfsIsPlug 0x8006C0E0, osPfsInitPak 0x8006C450, __osPfsRequestData
+    # 0x8006C280, __osPfsGetInitData 0x8006C37C and the pak file system) runs as the game's
+    # original code over the SI emulation in full_runtime/controller_pak.cpp; only the SI
+    # primitives below are named (replaced).
 }
 
 if __name__ == '__main__':

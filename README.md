@@ -74,6 +74,7 @@ program (or in your user folder when that is not writable).
 | File or folder (beside the program) | What it is |
 |---|---|
 | `hangtime.ini` | settings (delete it to restore the defaults) |
+| `saves/controller_pak_1.mpk` (2-4 for more players) | your Controller Pak: player records, created players and game options, saved by the game itself; standard 32 KB `.mpk` images, compatible with N64 emulators |
 | `hangtime_game.dll` / `.so` | the game code generated from your ROM on first start; never share it |
 | `game_build/build.log` | log of that first-start build |
 | `hangtime.log` | run log (Windows) |

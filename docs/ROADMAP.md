@@ -9,6 +9,8 @@
   game module from the player's ROM with a bundled toolchain (Windows and Linux); the function
   partition is computed on the player's machine, so packages carry no function tables.
 - Native Linux build (Vulkan), verified under WSL2 with software rendering.
+- Saving: the game's own Controller Pak code runs over an emulated Controller Pak per connected
+  controller (records, created players, options persist as .mpk files).
 
 ## Next
 1. **Public release readiness**: license and naming decisions, legal review, first release.

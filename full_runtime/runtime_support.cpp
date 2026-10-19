@@ -100,17 +100,9 @@ struct EnableProcessContext { EnableProcessContext() { hangtime_process_always_e
 extern "C" void main_context_restore(uint8_t* rdram, recomp_context* ctx) { hangtime_context_restore(rdram, ctx); }
 extern "C" void main_stack_enter(uint8_t* rdram, recomp_context* ctx) { hangtime_process_enter(rdram, ctx); }
 
-// No controller pak is attached (librecomp's osPfs* report PFS_ERR_NOPACK consistently).
-extern "C" void osPfsIsPlug_recomp(uint8_t* rdram, recomp_context* ctx) {
-    MEM_B(0, ctx->r5) = 0;  // bit pattern: no paks
-    ctx->r2 = 0;
-}
-
-// libultra internals reachable only from replaced managers/handlers or pak paths behind
-// osPfsInitPak (which reports no pak). Fail closed if the game ever reaches them.
+// libultra internals reachable only from replaced managers/handlers. Fail closed if the game
+// ever reaches them. (The SI primitives the Controller Pak uses: controller_pak.cpp.)
 #define FAIL_CLOSED(name) extern "C" void name##_recomp(uint8_t*, recomp_context*) { \
     fprintf(stderr, "FAIL: unreviewed libultra internal " #name " reached\n"); fflush(stderr); std::abort(); }
 FAIL_CLOSED(__osEnqueueAndYield)
-FAIL_CLOSED(__osEnqueueThread) FAIL_CLOSED(__osPopThread) FAIL_CLOSED(__osPfsGetInitData)
-FAIL_CLOSED(__osPfsRequestData) FAIL_CLOSED(__osPiRawStartDma) FAIL_CLOSED(__osSiGetAccess)
-FAIL_CLOSED(__osSiRawStartDma) FAIL_CLOSED(__osSiRelAccess)
+FAIL_CLOSED(__osEnqueueThread) FAIL_CLOSED(__osPopThread) FAIL_CLOSED(__osPiRawStartDma)

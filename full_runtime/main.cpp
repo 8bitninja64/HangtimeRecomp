@@ -246,12 +246,24 @@ static bool get_input(int controller, uint16_t* buttons, float* x, float* y) {
     if (input_trace) trace_input(*buttons, *x, *y);
     return true;
 }
+bool hangtime_controller_present(int channel);
+void hangtime_controller_pak_dir(const std::filesystem::path& dir);   // controller_pak.cpp
 static ultramodern::input::connected_device_info_t device_info(int controller) {
+    // The game's own osContInit sets libultra's __osMaxControllers (u8 0x80168A51: written by
+    // osContInit 0x8006BD20, the port loop bound of the recompiled osPfsIsPlug 0x8006C0E0 and
+    // __osPfsRequestData 0x8006C280) to MAXCONTROLLERS. ultramodern's osContInit, which replaces
+    // it and calls this, does not; without it the game's Controller Pak code queries no ports.
+    if (rdram_base) rdram_base[(0x80168A51u - 0x80000000u) ^ 3] = 4;
     const bool present = controller == 0 ? controller_connected
         : controller < 4 && (pads[controller].load() || (use_keyboard && keyboard_player == controller) || always_four);
-    if (present) return {ultramodern::input::Device::Controller, ultramodern::input::Pak::None};
+    // A Controller Pak is inserted in every connected controller (controller_pak.cpp). ultramodern
+    // has no Controller Pak value; any non-None pak sets the status word's pak-inserted bit
+    // (CONT_CARD_ON) that the game checks before using the pak. RumblePak's only other effect is on
+    // osMotor*, which this game never calls.
+    if (present) return {ultramodern::input::Device::Controller, ultramodern::input::Pak::RumblePak};
     return {ultramodern::input::Device::None, ultramodern::input::Pak::None};
 }
+bool hangtime_controller_present(int channel) { return device_info(channel).connected_device != ultramodern::input::Device::None; }
 
 // ---- audio: SDL queue, 16-bit stereo; ultramodern hands samples in N64 word order ----
 static SDL_AudioDeviceID audio_device = 0;
@@ -567,6 +579,7 @@ int main(int argc, char** argv) {
     bool force_launcher = false, no_launcher = false;
     std::set<std::string> test_cheats;
     std::string render_gpu_arg;   // --render-gpu NAME (tests); else the player setting
+    std::string pak_dir_arg;      // --pak-dir PATH (tests); players: <data folder>/saves
     for (int i = 1; i < argc; ++i)
         if (!strcmp(argv[i], "--partition") && i + 2 < argc) {   // verify_partition.py: the runtime's own partition
             std::vector<uint8_t> rom; std::string error; HangtimePartition part;
@@ -626,6 +639,7 @@ int main(int argc, char** argv) {
             }
         }
         else if (!strcmp(argv[i], "--msaa") && i + 1 < argc) hangtime_video.msaa = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--pak-dir") && i + 1 < argc) pak_dir_arg = argv[++i];   // tests: Controller Pak files here
         else if (!strcmp(argv[i], "--upscale-2d") && i + 1 < argc) {   // original | scaled | all (video_options.hpp)
             const std::string m = argv[++i];
             hangtime_video.upscale2d = m == "original" ? 0 : m == "scaled" ? 1 : m == "all" ? 2 : -1;
@@ -737,6 +751,10 @@ int main(int argc, char** argv) {
             if (!built || !hangtime_game_load(error)) { message_box(error.c_str()); return 1; }
         }
     }
+    // Controller Pak saves (controller_pak.cpp): the player's data folder; test runs keep their paks
+    // in memory unless --pak-dir names a folder, so they never touch a player's saves.
+    if (!pak_dir_arg.empty()) hangtime_controller_pak_dir(std::filesystem::u8path(pak_dir_arg));
+    else if (!background) hangtime_controller_pak_dir(launcher_data_dir() / "saves");
     if (!background) {   // player settings (launcher pages); test runs keep the verified defaults
         bindings.load(settings.extra);
         master_volume = settings.master_volume;
