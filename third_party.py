@@ -59,14 +59,16 @@ COMPONENTS = [
      'runtime', ('rt64', f'{C}/miniz/miniz.c'), 'License in the file header.'),
     ('nativefiledialog-extended', '1.1.1', 'Zlib', 'Bernard Teo, Michael Labbe', 'runtime',
      ('rt64', f'{C}/nativefiledialog-extended/LICENSE'), ''),
-    ('utf8conv', '', 'UNKNOWN (probably MIT)', 'Copyright (C) Giovanni Dicanio', 'runtime (Windows)',
-     ('rt64', f'{C}/utf8conv/utf8conv.h'), 'No license grant in the files; the author\'s UnicodeConversions repository is MIT. OPEN: confirm.'),
+    ('utf8conv', '', 'MIT', 'Copyright (c) 2016-2022 by Giovanni Dicanio', 'runtime (Windows)',
+     ('native', 'third_party/utf8conv/LICENSE'), 'License from the author\'s repository GiovanniDicanio/Utf8Conv (third_party/utf8conv/SOURCE.txt).'),
     ('SDL2', '2.26.3', 'Zlib', 'Copyright (C) 1997-2023 Sam Lantinga', 'runtime (Windows: SDL2.dll in packages; Linux: system library)',
      ('rt64', f'{C}/mupen64plus-win32-deps/SDL2-2.26.3/COPYING.txt'), 'README-SDL.txt is shipped with SDL2.dll.'),
     ('DirectX Shader Compiler (dxcompiler.dll)', '1.7.0.4147', 'NCSA', 'Copyright (c) 2003-2015 University of Illinois at Urbana-Champaign; Microsoft Corporation',
-     'package (Windows)', None, 'OPEN: license text and ThirdPartyNotices from the matching upstream release; binary provenance.'),
+     'package (Windows)', ('native', 'third_party/DirectXShaderCompiler/LICENSE-dxcompiler.txt'),
+     'Binary from RT64 (src/contrib/dxc); license texts from DXC release v1.7.2212 (third_party/DirectXShaderCompiler/SOURCE.txt).'),
     ('DXIL signing library (dxil.dll)', '101.7.2212.14', 'LicenseRef-Microsoft-DXC (proprietary)', 'Copyright (c) Microsoft Corporation',
-     'package (Windows)', None, 'OPEN, BLOCKING: Microsoft license terms (LICENSE-MS.txt) not in the tree; redistribution beside a GPL-3.0 program needs review.'),
+     'package (Windows)', ('native', 'third_party/DirectXShaderCompiler/LICENSE-MS.txt'),
+     'Binary from RT64 (src/contrib/dxc), identical to DXC release v1.7.2212; Microsoft\'s terms in LICENSE-MS.txt. Shipped as other RT64-based projects do (third_party/DirectXShaderCompiler/SOURCE.txt).'),
     ('SDL_GameControllerDB (gamecontrollerdb.txt)', 'c1d5289', 'Zlib', 'Copyright (C) 1997-2025 Sam Lantinga and contributors',
      'package (beside the program)', ('native', 'third_party/SDL_GameControllerDB/LICENSE'),
      'Community controller mappings, loaded at startup (main.cpp); source and commit in third_party/SDL_GameControllerDB/SOURCE.txt.'),
@@ -80,7 +82,7 @@ COMPONENTS = [
     ('Zig', '0.17.0', 'MIT (bundled libraries under their own licenses: LLVM libc++/libunwind/compiler-rt Apache-2.0 WITH LLVM-exception, '
      'mingw-w64 ZPL-2.1 and others, glibc LGPL-2.1-or-later, Linux headers GPL-2.0 WITH Linux-syscall-note)', 'Copyright (c) Zig contributors',
      'package (tools/zig), module (runtime libraries linked into it)', None,
-     'Packaged unmodified with its own license files (tools/zig); packages add the LGPL-2.1 and GPL-2.0 texts (LICENSES/). OPEN: mingw-w64 DISCLAIMER.PD (Windows package).'),
+     'Packaged unmodified with its own license files (tools/zig; mingw-w64: tools/zig/lib/libc/mingw/COPYING); packages add the LGPL-2.1 and GPL-2.0 texts (LICENSES/).'),
 ]
 
 def table():

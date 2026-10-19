@@ -7,7 +7,17 @@ the license files themselves. It is not legal advice.
 
 Our code is the runtime (`full_runtime/`, `process_context.*`), the build and analysis scripts
 (`build.py`, `full_inventory.py`, `prepare_full.py`, `libultra_map.py`, ...), the tests and the
-documentation. The project license is pending the owner's decision (recommended: GPL-3.0-or-later, see docs/LICENSING.md).
+documentation. This project's own code is licensed under the GNU General Public License, version 3 or (at your option) any later version (GPL-3.0-or-later); the full text is in [LICENSE](LICENSE).
+
+Release packages carry the full text as `LICENSE.txt`; the complete corresponding source of a
+release is this repository at its tag (plus the pinned submodules).
+
+Windows packages include `dxcompiler.dll` and `dxil.dll` exactly as RT64 provides them
+(`src/contrib/dxc`), as other RT64-based projects ship them. `dxcompiler.dll` is open source
+(NCSA, MIT). `dxil.dll` is Microsoft's proprietary DXIL signing library; its terms
+(`LICENSE-MS.txt`, from the matching DirectX Shader Compiler release, included in `LICENSES/`)
+do not themselves grant redistribution. It is not part of the GPL-licensed program; it is a
+separate system-level component the renderer loads at run time.
 
 Why GPL-3.0 matters here: the runtime executable statically links **N64ModernRuntime**
 (ultramodern and librecomp), which is licensed under the **GNU GPL version 3**. Its license file

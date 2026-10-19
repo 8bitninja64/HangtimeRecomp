@@ -22,7 +22,7 @@ generated sources, the ROM, settings, logs or symbol maps, and then scans the re
 The package stays INTERNAL (NOTICE.txt, folder suffix) while RELEASE_LEGAL.md's open questions are
 unresolved; that flag is set here and must be removed deliberately after review.
 """
-import hashlib, os, random, shutil, subprocess, sys, tarfile, zipfile
+import hashlib, json, os, random, shutil, subprocess, sys, tarfile, zipfile
 from pathlib import Path
 
 P = Path(__file__).resolve().parent
@@ -30,7 +30,7 @@ sys.path.insert(0, str(P))
 import hangtime_paths, third_party
 ROOT = P.parent
 VER = '0.1.0'
-INTERNAL = True   # RELEASE_LEGAL.md "Open questions" unresolved
+INTERNAL = False  # owner 2026-10-19: public pre-release, GPL-3.0-or-later (PUBLIC_RELEASE.md); a missing license text still makes a package INTERNAL
 LINUX = '--linux' in sys.argv
 PERSONAL = '--personal' in sys.argv
 EXE = '' if LINUX else '.exe'
@@ -114,7 +114,12 @@ Requirements: {requirements}
 Start: run {exe} and choose your ROM. The first time, the program prepares the game files
 from your ROM (about a minute; tools/ holds the recompiler and the Zig compiler it uses) and keeps
 them in your data folder. Settings are stored in hangtime.ini beside it (or in your user folder).
-License texts of the included components: LICENSES/ and THIRD_PARTY.md.
+Updates: the launcher shows UPDATE AVAILABLE when a newer release is published and installs it
+in place on request (your ROM, settings and saves are kept).
+
+License: {product} is free software under the GNU General Public License, version 3 or (at your
+option) any later version (LICENSE.txt). Source code: https://github.com/{slug} (the release tag
+matching this version). License texts of the included components: LICENSES/ and THIRD_PARTY.md.
 """
 
 def main():
@@ -170,8 +175,9 @@ def main():
     if LINUX:
         rows += ['', 'Used from the system, not bundled: SDL2 (zlib), GTK 3 (LGPL-2.1), Vulkan loader (Apache-2.0).']
     (d / 'THIRD_PARTY.md').write_text('\n'.join(rows) + '\n', encoding='utf-8')
+    assert PERSONAL or INTERNAL or not missing, f'license texts missing for a release package: {missing}'
     status = ('INTERNAL BUILD - not for public distribution (license and legal review pending, RELEASE_LEGAL.md).'
-              if INTERNAL or missing else 'release')
+              if INTERNAL or missing else f'public pre-release {VER} (unofficial fan project)')
     requirements = (f'x86_64 Linux with glibc {glibc_needed(BUILD / "hangtime")} or newer, SDL2, GTK 3 and a Vulkan '
                     '1.2 driver (Debian/Ubuntu: libsdl2-2.0-0 libgtk-3-0 libvulkan1).' if LINUX else
                     '64-bit Windows 10/11, Microsoft Visual C++ Redistributable 2015-2022 (x64).')
@@ -181,8 +187,10 @@ def main():
         (d / 'NOTICE.txt').write_text('PERSONAL BUILD - contains game code generated from its owner\'s own ROM.\n'
                                       'For the ROM owner\'s own devices only. Do not upload, share or distribute.\n', encoding='utf-8')
     else:
-        (d / 'README.txt').write_text(README.format(ver=VER, status=status, requirements=requirements,
-                                                    exe='./hangtime' if LINUX else 'hangtime.exe'), encoding='utf-8')
+        export = json.loads((P / 'public/export.json').read_text(encoding='utf-8'))
+        (d / 'README.txt').write_text(README.format(ver=VER, status=status, requirements=requirements, product=export['PROJECT_NAME'],
+                                                    slug=export['GITHUB_SLUG'], exe='./hangtime' if LINUX else 'hangtime.exe'), encoding='utf-8')
+        shutil.copy2(P / 'public/LICENSE', d / 'LICENSE.txt')   # the project's license (GPL-3.0-or-later)
     if (INTERNAL or missing) and not PERSONAL:
         (d / 'NOTICE.txt').write_text('INTERNAL BUILD - DO NOT DISTRIBUTE.\nMissing license texts: ' + (', '.join(missing) or 'none') + '\n', encoding='utf-8')
     scan(d)

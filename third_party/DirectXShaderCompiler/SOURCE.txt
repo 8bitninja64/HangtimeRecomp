@@ -1,0 +1,9 @@
+License files from Microsoft's DirectX Shader Compiler release v1.7.2212 (dxc_2022_12_16.zip,
+https://github.com/microsoft/DirectXShaderCompiler/releases/tag/v1.7.2212, retrieved 2026-10-19).
+dxil.dll in RT64's src/contrib/dxc/bin/x64 is byte-identical to that release's bin/x64/dxil.dll
+(SHA-256 2c70d034d38b06c6a1161efb9246cce296be248ff52eff6c1b587ce150e5f36d); its terms are
+LICENSE-MS.txt. RT64's dxcompiler.dll (1.7.0.4147) is a different build than the release's; DXC's
+source license is LICENSE-LLVM.txt (NCSA) with LICENSE-MIT.txt (LICENSE-dxcompiler.txt is both).
+Note: LICENSE-MS.txt (section 4e) does not grant redistribution of dxil.dll. The packages ship it
+as other RT64-based projects do (Zelda64Recomp copies RT64's dxil.dll and dxcompiler.dll into its
+Windows releases); owner's decision 2026-10-19, recorded in PUBLIC_RELEASE.md.

@@ -55,8 +55,9 @@ Verified by automated tests that drive the real game (see [docs/TESTING.md](docs
 
 ## Playing
 
-1. Download a release package for your system (see Releases; none published yet) or build from
-   source (below).
+1. Download a release package for your system from
+   [Releases](https://github.com/8bitninja64/HangtimeRecomp/releases): `HangtimeRecomp-win64-*.zip` (Windows)
+   or `HangtimeRecomp-linux-x86_64-*.tar.gz` (Linux, Steam Deck), or build from source (below).
 2. Run `hangtime.exe` (Windows) or `./hangtime` (Linux) and choose your **NBA Hangtime (USA)**
    ROM when asked. Accepted: `.z64`, `.n64` or `.v64` byte order; the program checks the
    SHA-256 of the big-endian image:
@@ -144,7 +145,7 @@ be reviewed. If you do not want to use software made this way, please do not use
 
 ## License and acknowledgments
 
-The project license is pending the owner's decision (recommended: GPL-3.0-or-later, see docs/LICENSING.md). Third-party components keep their own licenses; see
+This project's own code is licensed under the GNU General Public License, version 3 or (at your option) any later version (GPL-3.0-or-later); the full text is in [LICENSE](LICENSE). Third-party components keep their own licenses; see
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [docs/LICENSING.md](docs/LICENSING.md).
 
 Built on the work of: N64Recomp and N64ModernRuntime (Wiseguy and contributors), RT64 (Dario

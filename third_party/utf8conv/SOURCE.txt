@@ -1,0 +1,2 @@
+LICENSE from https://github.com/GiovanniDicanio/Utf8Conv (MIT, retrieved 2026-10-19), the author's
+repository of utf8conv.h, which RT64 vendors in src/contrib/utf8conv without a license file.

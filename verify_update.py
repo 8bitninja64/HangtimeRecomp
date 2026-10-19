@@ -14,7 +14,7 @@ also retire the module and the new version must rebuild it from the ROM.
            the installed executable with its launcher
   play     the updated install (from ui) started on the ROM: it rebuilds the game module from the
            ROM with the new kit and the game boots (MODE lines), saves folder still in place
-Needs dist/HangtimeRecomp-win64-*-INTERNAL.zip and -PERSONAL.zip from the current build
+Needs dist/HangtimeRecomp-win64-*.zip (release or -INTERNAL) and -PERSONAL.zip from the current build
 (python package_release.py; python package_release.py --personal). Work folder:
 ..\\experiments\\test_update (local only).
 Usage: verify_update.py [badsum|cli|ui|play ...]
@@ -26,7 +26,7 @@ P = Path(__file__).resolve().parent
 WORK = P.parent / 'experiments' / 'test_update'
 DIST = P / 'dist'
 ROM = Path(os.environ.get('HANGTIME_ROM', P.parent / 'rom' / 'NBA Hangtime (USA).z64'))
-NEW = sorted(DIST.glob('HangtimeRecomp-win64-*-INTERNAL.zip'))
+NEW = sorted(z for z in DIST.glob('HangtimeRecomp-win64-*.zip') if 'PERSONAL' not in z.name)   # a release (or INTERNAL) package
 OLD = sorted(DIST.glob('HangtimeRecomp-win64-*-PERSONAL.zip'))
 assert NEW and OLD, 'build both packages first (package_release.py, package_release.py --personal)'
 NEW, OLD = NEW[-1], OLD[-1]
