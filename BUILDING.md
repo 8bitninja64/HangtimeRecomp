@@ -37,7 +37,10 @@ Debian/Ubuntu packages (names differ on other distributions):
 sudo apt install git cmake ninja-build clang python3 pkg-config libsdl2-dev libgtk-3-dev libvulkan-dev
 ```
 
-`build.py` uses clang (or gcc; set `CC`/`CXX` to choose). Result: `build/linux/hangtime` with
+`build.py` uses clang (or gcc; set `CC`/`CXX` to choose); those binaries need about the glibc of
+the machine that built them. For binaries that run on older distributions and SteamOS (release
+packages), pass the Zig 0.17.0 compiler: `python3 build.py --zig /path/to/zig --rom ...` builds
+for glibc 2.31 with a static C++ runtime. Result: `build/linux/hangtime` with
 `hangtime_game.so` and `assets/`. Run `./hangtime` from that folder. Running needs a Vulkan 1.2
 driver (Mesa RADV/ANV, NVIDIA proprietary), SDL2 and GTK 3.
 

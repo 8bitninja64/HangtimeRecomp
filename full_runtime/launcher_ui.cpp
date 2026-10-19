@@ -414,7 +414,7 @@ void page_files(Ui& u, LauncherSettings& s) {
 void page_about(Ui& u) {
     panel(u, [&] {
         ImGui::Text("%s  v%s", HANGTIME_PRODUCT_NAME, HANGTIME_VERSION);
-        ImGui::TextColored(ImColor(DIM), "Build %s %s  -  %s", __DATE__, __TIME__,
+        ImGui::TextColored(ImColor(DIM), "%s",   // no build timestamp: builds are reproducible
 #ifdef _WIN32
                            "Windows x64, Direct3D 12"
 #else

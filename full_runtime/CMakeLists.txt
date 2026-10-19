@@ -136,9 +136,14 @@ if (NOT WIN32)
         SDL2::SDL2 ${GTK3_LIBRARIES} pthread dl)
     # Portability: the C++ runtime linked in (no libstdc++ version requirement on the player's
     # system), and nothing from the static libraries exported to the game module.
-    target_link_options(hangtime PRIVATE -static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL)
-    if (TARGET hangtime_game)
-        target_link_options(hangtime_game PRIVATE -static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL)
+    # (Zig, used for release builds, links its own libc++ statically and rejects --exclude-libs.)
+    include(CheckLinkerFlag)
+    check_linker_flag(CXX "-static-libstdc++;-static-libgcc;-Wl,--exclude-libs,ALL" HANGTIME_STATIC_CXX_RUNTIME)
+    if (HANGTIME_STATIC_CXX_RUNTIME)
+        target_link_options(hangtime PRIVATE -static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL)
+        if (TARGET hangtime_game)
+            target_link_options(hangtime_game PRIVATE -static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL)
+        endif()
     endif()
     # Launcher font (Roboto Medium, Apache-2.0, from RT64's Dear ImGui copy).
     add_custom_command(TARGET hangtime POST_BUILD
