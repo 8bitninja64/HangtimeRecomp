@@ -269,6 +269,13 @@ void page_graphics(Ui& u, LauncherSettings& s) {
         if (combo("Render resolution", &ri, names)) s.resolution = res[ri];
         int mi = s.msaa == 8 ? 3 : s.msaa == 4 ? 2 : s.msaa == 2 ? 1 : 0;
         if (combo("Anti-aliasing", &mi, {"Off", "MSAA 2x", "MSAA 4x", "MSAA 8x"})) s.msaa = mi ? 1 << mi : 0;
+        // 2D sprites (video_options.hpp upscale2d): stored as upscale2d= in hangtime.ini.
+        auto up = s.extra.find("upscale2d");
+        int ui = up == s.extra.end() ? 1 : std::clamp(atoi(up->second.c_str()), 0, 2);
+        if (combo("2D sprites", &ui, {"Original resolution", "Upscale scaled sprites", "Upscale all"})) s.extra["upscale2d"] = std::to_string(ui);
+        auto tp = s.extra.find("three_point");
+        int ti = tp != s.extra.end() && tp->second == "0" ? 1 : 0;
+        if (combo("Texture filtering", &ti, {"N64 3-point (original)", "Standard bilinear"})) s.extra["three_point"] = ti ? "0" : "1";
         // Render GPU (render_gpu.hpp), stored per system in hangtime.ini; Automatic changes nothing.
         static const std::vector<RenderGpu> gpus = render_gpu_list();
         std::vector<std::string> gnames = {"Automatic"};

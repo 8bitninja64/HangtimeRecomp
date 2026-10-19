@@ -8,6 +8,11 @@ struct HangtimeVideoOptions {
     int refresh = 0;           // 0 original (VI rate), 1 display rate, 2 manual Hz (RT64 frame interpolation)
     int refresh_hz = 120;
     int msaa = 0;              // 0, 2, 4, 8
+    // RT64 upscaling of 2D sprites (texture rectangles): -1 RT64 default (scaled sprites only),
+    // 0 original resolution (like the N64: no filtered edge fringes on keyed sprites), 1 scaled only, 2 all.
+    int upscale2d = -1;
+    // RT64 texture filtering: -1 RT64 default (the N64's 3-point filter), 1 3-point, 0 standard bilinear.
+    int three_point = -1;
     double resolution = 0;     // 0 = integer scale to the window, else a fixed multiplier
     bool widescreen = false;   // --widescreen: true 16:9 live play (widescreen.cpp), aspect_ratio = target
     bool present_blocking = false;   // --present-blocking: RT64's original back-pressure (A/B; rt64_context.cpp)

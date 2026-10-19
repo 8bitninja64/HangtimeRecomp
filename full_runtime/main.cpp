@@ -626,6 +626,11 @@ int main(int argc, char** argv) {
             }
         }
         else if (!strcmp(argv[i], "--msaa") && i + 1 < argc) hangtime_video.msaa = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--upscale-2d") && i + 1 < argc) {   // original | scaled | all (video_options.hpp)
+            const std::string m = argv[++i];
+            hangtime_video.upscale2d = m == "original" ? 0 : m == "scaled" ? 1 : m == "all" ? 2 : -1;
+        }
+        else if (!strcmp(argv[i], "--three-point") && i + 1 < argc) hangtime_video.three_point = !strcmp(argv[++i], "off") ? 0 : 1;
         else if (!strcmp(argv[i], "--render-gpu") && i + 1 < argc) render_gpu_arg = argv[++i];
         else if (!strcmp(argv[i], "--present-blocking")) hangtime_video.present_blocking = true;
         else if (!strcmp(argv[i], "--graphics-api") && i + 1 < argc) hangtime_video.vulkan = !strcmp(argv[++i], "vulkan");
@@ -738,6 +743,10 @@ int main(int argc, char** argv) {
         audio_device_name = settings.audio_device;
         if (hangtime_video.resolution == 0 && settings.resolution > 0) hangtime_video.resolution = settings.resolution / 240.0;
         if (hangtime_video.msaa == 0) hangtime_video.msaa = settings.msaa;
+        if (auto it = settings.extra.find("upscale2d"); hangtime_video.upscale2d < 0 && it != settings.extra.end())
+            hangtime_video.upscale2d = std::clamp(atoi(it->second.c_str()), -1, 2);
+        if (auto it = settings.extra.find("three_point"); hangtime_video.three_point < 0 && it != settings.extra.end())
+            hangtime_video.three_point = atoi(it->second.c_str()) != 0;
         cheats_configure(settings.cheats);
         if (auto it = settings.extra.find("keyboard_player"); it != settings.extra.end()) keyboard_player = std::clamp(atoi(it->second.c_str()), 1, 4) - 1;
         if (auto it = settings.extra.find("controllers"); it != settings.extra.end()) always_four = it->second == "4";

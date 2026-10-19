@@ -73,11 +73,15 @@ public:
         if (hangtime_video.aspect == 2) { app->userConfig.aspectRatio = UC::AspectRatio::Manual; app->userConfig.aspectTarget = hangtime_video.aspect_ratio; }
         if (hangtime_video.refresh == 1) app->userConfig.refreshRate = UC::RefreshRate::Display;
         if (hangtime_video.refresh == 2) { app->userConfig.refreshRate = UC::RefreshRate::Manual; app->userConfig.refreshRateTarget = hangtime_video.refresh_hz; }
+        if (hangtime_video.upscale2d == 0) app->userConfig.upscale2D = UC::Upscale2D::Original;
+        if (hangtime_video.upscale2d == 1) app->userConfig.upscale2D = UC::Upscale2D::ScaledOnly;
+        if (hangtime_video.upscale2d == 2) app->userConfig.upscale2D = UC::Upscale2D::All;
+        if (hangtime_video.three_point >= 0) app->userConfig.threePointFiltering = hangtime_video.three_point != 0;
         if (hangtime_video.msaa == 2) app->userConfig.antialiasing = UC::Antialiasing::MSAA2X;
         if (hangtime_video.msaa == 4) app->userConfig.antialiasing = UC::Antialiasing::MSAA4X;
         if (hangtime_video.msaa == 8) app->userConfig.antialiasing = UC::Antialiasing::MSAA8X;
-        fprintf(stderr, "VIDEO aspect=%d ratio=%.3f refresh=%d hz=%d msaa=%d resolution=%.2f\n", hangtime_video.aspect, hangtime_video.aspect_ratio,
-                hangtime_video.refresh, hangtime_video.refresh_hz, hangtime_video.msaa, hangtime_video.resolution);
+        fprintf(stderr, "VIDEO aspect=%d ratio=%.3f refresh=%d hz=%d msaa=%d resolution=%.2f upscale2d=%d three_point=%d\n", hangtime_video.aspect, hangtime_video.aspect_ratio,
+                hangtime_video.refresh, hangtime_video.refresh_hz, hangtime_video.msaa, hangtime_video.resolution, hangtime_video.upscale2d, hangtime_video.three_point);
         const auto result = app->setup(window_thread);
         setup_result = result == RT64::Application::SetupResult::Success ? ultramodern::renderer::SetupResult::Success : ultramodern::renderer::SetupResult::GraphicsDeviceNotFound;
         chosen_api = chosen;
