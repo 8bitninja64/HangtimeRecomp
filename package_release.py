@@ -75,7 +75,7 @@ def package_components():
 FILES = ['hangtime', 'assets/Roboto-Medium.ttf'] if LINUX else         ['hangtime.exe', 'SDL2.dll', 'dxcompiler.dll', 'dxil.dll', 'hangtime.lib', 'assets/Roboto-Medium.ttf']
 FORBIDDEN = ('full.toml', 'full.symbols.toml', 'full_inventory', 'hangtime_game', '.z64', '.n64', '.v64', '.map', '.pdb', 'hangtime.ini', '.log', 'captures', 'full_generated', 'audio_rsp_generated', 'game_build')
 
-README = """NBA Hangtime Recompiled - PC runtime {ver}
+README = """HangtimeRecomp {ver} - unofficial PC port of NBA Hangtime (Nintendo 64)
 
 Unofficial fan project. Not affiliated with, endorsed or sponsored by the NBA, Midway, Nintendo or
 any other rights holder. All trademarks belong to their owners.
@@ -96,7 +96,7 @@ License texts of the included components: LICENSES/ and THIRD_PARTY.md.
 
 def main():
     out = Path(sys.argv[sys.argv.index('--out') + 1]) if '--out' in sys.argv else P / 'dist'
-    name = f'NBAHangtimeRecompiled-{"linux-x86_64" if LINUX else "win64"}-{VER}' + ('-INTERNAL' if INTERNAL else '')
+    name = f'HangtimeRecomp-{"linux-x86_64" if LINUX else "win64"}-{VER}' + ('-INTERNAL' if INTERNAL else '')
     d = out / name
     if d.exists(): shutil.rmtree(d)
     (d / 'LICENSES').mkdir(parents=True)
@@ -131,10 +131,10 @@ def main():
         if 'OPEN' in note and comp not in missing: missing.append(comp + ' (open question)')
     # Zig's bundled glibc (LGPL-2.1-or-later) and Linux UAPI headers (GPL-2.0 WITH Linux-syscall-note)
     # refer to these texts without shipping them; the standard texts from RT64's Mupen64Plus docs.
-    for text, name in (('lgpl-license', 'LGPL-2.1.txt'), ('gpl-license', 'GPL-2.0.txt')):
+    for text, lic_name in (('lgpl-license', 'LGPL-2.1.txt'), ('gpl-license', 'GPL-2.0.txt')):
         src = third_party.roots()['rt64'] / 'src/contrib/mupen64plus-core/doc' / text
-        if src.exists(): shutil.copy2(src, d / 'LICENSES' / name)
-        else: missing.append(f'{name} (for tools/zig)')
+        if src.exists(): shutil.copy2(src, d / 'LICENSES' / lic_name)
+        else: missing.append(f'{lic_name} (for tools/zig)')
     sdl_readme = third_party.roots()['rt64'] / 'src/contrib/mupen64plus-win32-deps/SDL2-2.26.3/README-SDL.txt'
     if not LINUX and sdl_readme.exists(): shutil.copy2(sdl_readme, d / 'README-SDL.txt')
     if LINUX:

@@ -157,10 +157,11 @@ void background(Ui& u, int w, int h) {
 }
 
 void title(Ui& u, bool subtitle) {
-    text(u, 52, 800 - 330, 34, GOLD, HANGTIME_TITLE_SMALL, 0);
-    outlined(u, 150, 800, 62, rgba(255, 230, 90), rgba(255, 110, 20), HANGTIME_TITLE_LARGE, 0.5f);
-    dl()->AddRectFilledMultiColor(u.P(430, 230), u.P(1170, 236), RED, rgba(255, 140, 40), rgba(255, 140, 40), RED);
-    if (subtitle) text(u, 30, 800, 248, rgba(205, 212, 228), HANGTIME_TITLE_SUB, 0.5f, 6);
+    // The project's own title (branding.hpp), centered: small line, large outlined line, rule, subtitle.
+    text(u, 34, 800, 40, GOLD, HANGTIME_TITLE_SMALL, 0.5f, 5);
+    outlined(u, 112, 800, 84, rgba(255, 230, 90), rgba(255, 110, 20), HANGTIME_TITLE_LARGE, 0.5f);
+    dl()->AddRectFilledMultiColor(u.P(330, 230), u.P(1270, 236), RED, rgba(255, 140, 40), rgba(255, 140, 40), RED);
+    if (subtitle) text(u, 26, 800, 248, rgba(205, 212, 228), HANGTIME_TITLE_SUB, 0.5f, 4);
 }
 
 struct Tile { float x, y, w, h; const char* label; void (*icon)(Ui&, float, float, float); };

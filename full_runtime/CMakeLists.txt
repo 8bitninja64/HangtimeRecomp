@@ -65,6 +65,8 @@ function(hangtime_settings target)
         # MSVC semantics the generated code was verified under: wrapping signed arithmetic, no
         # type-based alias analysis.
         target_compile_options(${target} PRIVATE -O2 -fwrapv -fno-strict-aliasing -Wno-unused-value -Wno-parentheses-equality)
+        # Portability (SteamOS and other older distributions): original glibc symbol versions.
+        target_compile_options(${target} PRIVATE -include "${CMAKE_CURRENT_SOURCE_DIR}/glibc_compat.h")
         # librecomp's RSP vector unit uses SSSE3/SSE4.1 intrinsics (MSVC allows them unflagged;
         # every x86-64 CPU this targets, Steam Deck included, has them).
         if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
@@ -132,6 +134,12 @@ if (NOT WIN32)
         "${RT64_BUILD}/src/contrib/zstd/build/cmake/lib/libzstd.a"
         -Wl,--end-group
         SDL2::SDL2 ${GTK3_LIBRARIES} pthread dl)
+    # Portability: the C++ runtime linked in (no libstdc++ version requirement on the player's
+    # system), and nothing from the static libraries exported to the game module.
+    target_link_options(hangtime PRIVATE -static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL)
+    if (TARGET hangtime_game)
+        target_link_options(hangtime_game PRIVATE -static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL)
+    endif()
     # Launcher font (Roboto Medium, Apache-2.0, from RT64's Dear ImGui copy).
     add_custom_command(TARGET hangtime POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:hangtime>/assets"

@@ -1,4 +1,4 @@
-# Contributing to NBA Hangtime Recompiled
+# Contributing to HangtimeRecomp
 
 Thanks for helping. Bug reports, hardware test results and pull requests are all welcome.
 

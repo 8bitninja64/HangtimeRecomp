@@ -1,4 +1,4 @@
-# NBA Hangtime Recompiled vX.Y.Z (work in progress)
+# HangtimeRecomp vX.Y.Z (work in progress)
 
 **You need your own NBA Hangtime (USA) ROM.** No game data is included; the game code is built
 from your ROM on first start (a minute or two, once).

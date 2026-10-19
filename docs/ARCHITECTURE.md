@@ -1,4 +1,4 @@
-# How NBA Hangtime Recompiled works
+# How HangtimeRecomp works
 
 ## Two products
 

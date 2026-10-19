@@ -1,4 +1,4 @@
-# Building NBA Hangtime Recompiled
+# Building HangtimeRecomp
 
 You need your own **NBA Hangtime (USA)** ROM: the build generates the game code from it. The
 ROM and everything generated from it stay on your machine (git-ignored; never commit them).
@@ -8,8 +8,8 @@ sources (git submodules), builds N64Recomp/RSPRecomp and RT64, recompiles the ga
 ROM, and builds the runtime and the game module.
 
 ```
-git clone --recursive https://github.com/8bitninja64/NBAHangtimeRecompiled-public.git
-cd NBAHangtimeRecompiled-public
+git clone --recursive https://github.com/8bitninja64/HangtimeRecomp.git
+cd HangtimeRecomp
 python build.py --rom "path/to/NBA Hangtime (USA).z64"
 ```
 

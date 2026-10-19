@@ -80,15 +80,26 @@ def main():
         build = lambda d, *targets: [cmake, '--build', d, '--parallel', JOBS, *(a for t in targets for a in ('--target', t))]
         recomp_bin = DEPS / 'n64recomp'
     exe = '.exe' if WIN else ''
+    # Linux portability (glibc_compat.h): RT64 gets the same forced include as the runtime; the tools
+    # link their C++ runtime statically. A changed profile rebuilds the dependencies.
+    compat = P / 'full_runtime' / 'glibc_compat.h'
+    profile = 'windows-1' if WIN else 'linux-compat-1'
+    stamp = DEPS / 'profile.txt'
+    if (stamp.read_text().strip() if stamp.exists() else None) != profile:   # also: deps from before the stamp
+        shutil.rmtree(DEPS / 'n64recomp', ignore_errors=True); shutil.rmtree(DEPS / 'rt64', ignore_errors=True)
+    tool_opts = [] if WIN else ['-DCMAKE_EXE_LINKER_FLAGS=-static-libstdc++ -static-libgcc']
     if not (recomp_bin / f'N64Recomp{exe}').exists() or not (recomp_bin / f'RSPRecomp{exe}').exists():
-        run('n64recomp-cfg', [cmake, '-S', n64recomp, '-B', DEPS / 'n64recomp', *gen])
+        run('n64recomp-cfg', [cmake, '-S', n64recomp, '-B', DEPS / 'n64recomp', *gen, *tool_opts])
         run('n64recomp', build(DEPS / 'n64recomp', 'N64RecompCLI', 'RSPRecomp'))
     rt64_build = DEPS / 'rt64'
     rt64_lib = rt64_build / ('Release/rt64.lib' if WIN else 'rt64.a')
     if not rt64_lib.exists():
-        rt64_opts = ['-DRT64_STATIC=ON'] + ([] if WIN else ['-DRT64_SDL_WINDOW_VULKAN=ON'])
+        rt64_opts = ['-DRT64_STATIC=ON'] + ([] if WIN else ['-DRT64_SDL_WINDOW_VULKAN=ON',
+                     f'-DCMAKE_C_FLAGS=-include {compat}', f'-DCMAKE_CXX_FLAGS=-include {compat}'])
         run('rt64-cfg', [cmake, '-S', rt64, '-B', rt64_build, *gen, *rt64_opts])
         run('rt64', build(rt64_build, 'rt64'), timeout=7200)
+
+    DEPS.mkdir(parents=True, exist_ok=True); stamp.write_text(profile + '\n')
 
     # 4. Game code from the ROM (build products only; git-ignored).
     if not runtime_only:

@@ -1,6 +1,6 @@
 # Third-party notices
 
-NBA Hangtime Recompiled contains or is built with the following third-party software. Each keeps its
+HangtimeRecomp contains or is built with the following third-party software. Each keeps its
 own license; the texts are in the named files of this repository, its submodules (`external/`)
 or, in release packages, in `LICENSES/`. Items marked OPEN are being resolved before the first
 release (docs/LICENSING.md).

@@ -1,4 +1,4 @@
-# NBA Hangtime Recompiled
+# HangtimeRecomp
 
 **An unofficial, work-in-progress native PC port of NBA Hangtime for the Nintendo 64, built by
 static recompilation.** Windows x64 today, native Linux in testing, Steam Deck planned.
@@ -10,7 +10,7 @@ static recompilation.** Windows x64 today, native Linux in testing, Steam Deck p
 
 ## About
 
-NBA Hangtime Recompiled runs the original game's own MIPS code, translated ahead of time into native C
+HangtimeRecomp runs the original game's own MIPS code, translated ahead of time into native C
 by [N64Recomp](https://github.com/N64Recomp/N64Recomp) and compiled for your PC. It is not an
 emulator frontend and not a remake: the game logic, physics, AI, menus and rules are the
 original's. Around that code sits an independently written runtime:
@@ -79,8 +79,8 @@ program (or in your user folder when that is not writable).
 See [BUILDING.md](BUILDING.md). In short, with the tools installed:
 
 ```
-git clone --recursive https://github.com/8bitninja64/NBAHangtimeRecompiled-public.git
-cd NBAHangtimeRecompiled-public
+git clone --recursive https://github.com/8bitninja64/HangtimeRecomp.git
+cd HangtimeRecomp
 python build.py --rom "path/to/your/NBA Hangtime (USA).z64"
 ```
 
