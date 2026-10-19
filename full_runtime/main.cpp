@@ -37,6 +37,7 @@
 #include "recomp.h"
 #include "lightweightsemaphore.h"
 #include "launcher.hpp"
+#include "update_check.hpp"
 #include "branding.hpp"
 #include "launcher_ui.hpp"
 #include "input_map.hpp"
@@ -591,6 +592,15 @@ int main(int argc, char** argv) {
             std::ofstream(dir / "full.hooks.toml", std::ios::binary) << part.hooks_toml;
             printf("partition: %zu functions\n", part.functions);
             return 0;
+        }
+        else if (!strcmp(argv[i], "--check-update")) {   // tests: the launcher's update check, printed (no ROM, no window)
+            const std::string repo = update_repo(i + 1 < argc && argv[i + 1][0] != '-' ? argv[++i] : "");
+            const UpdateStatus r = update_check_now(repo);
+            static const char* const names[] = {"idle", "checking", "up-to-date", "available", "no-releases", "failed"};
+            printf("UPDATE repo=%s current=%s state=%s latest=%s%s%s\n", repo.c_str(), HANGTIME_VERSION, names[r.state], r.latest.c_str(),
+                   r.error.empty() ? "" : " error=", r.error.c_str());
+            fflush(stdout);
+            return r.state == UpdateStatus::Failed ? 2 : 0;
         }
         else if (!strcmp(argv[i], "--version")) {   // CI smoke test: the runtime starts (no ROM, no window)
             printf("hangtime runtime %s (game module API %u)\n", HANGTIME_VERSION, (unsigned)HANGTIME_GAME_API_VERSION);

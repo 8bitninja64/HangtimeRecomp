@@ -19,6 +19,7 @@
 #include "render_gpu.hpp"
 #include "module_builder.hpp"
 #include "branding.hpp"
+#include "update_check.hpp"
 #include <thread>
 
 namespace {
@@ -170,7 +171,60 @@ const Tile TILES[] = {
     {110, 530, 440, 170, "CHEATS", icon_flame}, {580, 530, 440, 170, "AUDIO", icon_speaker}, {1050, 530, 440, 170, "GAME FILES", icon_cart},
     {580, 720, 440, 90, "ABOUT", icon_info},
 };
-constexpr int TILE_COUNT = 7, SKIP_ITEM = 7;
+constexpr int TILE_COUNT = 7, SKIP_ITEM = 7, UPDATE_ITEM = 8;
+const Tile UPDATE_TILE = {1050, 720, 440, 90, "", nullptr};
+
+// Update check (update_check.hpp): on unless update_check=0; the repository is HANGTIME_UPDATE_REPO
+// unless update_repo= names another.
+bool update_auto(const LauncherSettings& s) { auto it = s.extra.find("update_check"); return it == s.extra.end() || it->second != "0"; }
+std::string update_repo_of(const LauncherSettings& s) { auto it = s.extra.find("update_repo"); return update_repo(it == s.extra.end() ? "" : it->second); }
+const char* update_label(const UpdateStatus& st) {
+    switch (st.state) {
+        case UpdateStatus::Checking: return "CHECKING...";
+        case UpdateStatus::Available: return "UPDATE AVAILABLE";
+        case UpdateStatus::UpToDate: return "UP TO DATE";
+        default: return "CHECK UPDATES";
+    }
+}
+// Activating the tile: an available update opens its release page; otherwise check (again).
+void update_activate(const LauncherSettings& s) {
+    const UpdateStatus st = update_check_status();
+    if (st.state == UpdateStatus::Available) SDL_OpenURL(update_release_page(update_repo_of(s)).c_str());
+    else if (st.state != UpdateStatus::Checking) update_check_start(update_repo_of(s));
+}
+void draw_update_tile(Ui& u, const LauncherSettings& s, bool selected, float time) {
+    const UpdateStatus st = update_check_status();
+    const Tile& t = UPDATE_TILE;
+    const bool avail = st.state == UpdateStatus::Available;
+    ImDrawList* d = dl();
+    if (selected || avail) {
+        const float pulse = 0.6f + 0.4f * std::sin(time * 4.0f);
+        const ImU32 glow = avail ? rgba(90, 230, 110, (int)(50 * pulse)) : rgba(255, 190, 40, (int)(40 * pulse));
+        for (int k = 5; k >= 1; --k)
+            d->AddRect(u.P(t.x - k * 2.0f, t.y - k * 2.0f), u.P(t.x + t.w + k * 2.0f, t.y + t.h + k * 2.0f), glow, u.S(14), 0, u.S(4));
+    }
+    const ImU32 top = avail ? rgba(24, 80, 40) : selected ? rgba(60, 50, 40) : rgba(22, 36, 80), bottom = avail ? rgba(12, 46, 22) : selected ? rgba(30, 24, 18) : rgba(12, 20, 50);
+    d->AddRectFilledMultiColor(u.P(t.x, t.y), u.P(t.x + t.w, t.y + t.h), top, top, bottom, bottom);
+    d->AddRect(u.P(t.x, t.y), u.P(t.x + t.w, t.y + t.h), selected ? GOLD : avail ? rgba(90, 230, 110) : EDGE, u.S(12), 0, u.S(selected ? 4.0f : 2.0f));
+    // icon: a circular arrow
+    const ImVec2 c = u.P(t.x + 52, t.y + t.h / 2);
+    const ImU32 ic = avail ? rgba(120, 240, 140) : selected ? GOLD : TEXT;
+    d->PathArcTo(c, u.S(22), 0.6f, 5.6f, 24); d->PathStroke(ic, 0, u.S(5));
+    const ImVec2 tip = {c.x + u.S(22) * std::cos(0.6f), c.y + u.S(22) * std::sin(0.6f)};
+    d->AddTriangleFilled({tip.x - u.S(11), tip.y - u.S(2)}, {tip.x + u.S(9), tip.y - u.S(6)}, {tip.x + u.S(2), tip.y + u.S(13)}, ic);
+    text(u, 32, t.x + 96, t.y + 14, avail ? rgba(150, 255, 170) : selected ? GOLD : TEXT, update_label(st), 0, 2);
+    std::string sub;
+    switch (st.state) {
+        case UpdateStatus::Available: sub = "Select to get " + st.latest + " (opens GitHub)"; break;
+        case UpdateStatus::UpToDate: sub = "v" + std::string(HANGTIME_VERSION) + " is the latest release"; break;
+        case UpdateStatus::NoReleases: sub = "No published release found"; break;
+        case UpdateStatus::Failed: sub = "Could not check: " + st.error; break;
+        case UpdateStatus::Checking: sub = "Asking GitHub for the latest release"; break;
+        default: sub = update_auto(s) ? "" : "Automatic check is off (ABOUT)"; break;
+    }
+    if (sub.size() > 42) sub = sub.substr(0, 41) + "...";
+    text(u, 20, t.x + 98, t.y + 54, DIM, sub.c_str());
+}
 
 void draw_tile(Ui& u, const Tile& t, bool selected, float time) {
     ImDrawList* d = dl();
@@ -221,8 +275,8 @@ Nav nav_from_event(const SDL_Event& e) {
     return N_NONE;
 }
 int main_move(int sel, Nav n) {
-    // grid: 0 1 2 / 3 4 5 / 6 / 7(skip toggle)
-    static const int up[] = {0, 1, 2, 0, 1, 2, 4, 6}, down[] = {3, 4, 5, 6, 6, 6, 7, 7}, left[] = {0, 0, 1, 3, 3, 4, 6, 7}, right[] = {1, 2, 2, 4, 5, 5, 6, 7};
+    // grid: 0 1 2 / 3 4 5 / 6 8(updates) / 7(skip toggle)
+    static const int up[] = {0, 1, 2, 0, 1, 2, 4, 6, 5}, down[] = {3, 4, 5, 6, 6, 8, 7, 7, 7}, left[] = {0, 0, 1, 3, 3, 4, 6, 7, 6}, right[] = {1, 2, 2, 4, 5, 5, 8, 7, 8};
     switch (n) { case N_UP: return up[sel]; case N_DOWN: return down[sel]; case N_LEFT: return left[sel]; case N_RIGHT: return right[sel]; default: return sel; }
 }
 
@@ -414,13 +468,21 @@ void page_files(Ui& u, LauncherSettings& s) {
         ImGui::TextColored(ImColor(DIM), "Accepted: NBA Hangtime (USA) in .z64, .n64 or .v64 byte order (SHA-256 checked).");
         ImGui::TextColored(ImColor(DIM), "Settings: %s", launcher_utf8(launcher_data_dir() / "hangtime.ini").c_str());
         ImGui::TextColored(ImColor(DIM), "Log: %s", launcher_utf8(launcher_data_dir() / "hangtime.log").c_str());
-        ImGui::TextColored(ImColor(DIM), "Saves: none (the cartridge has no save memory; controller pak not emulated yet).");
+        ImGui::TextColored(ImColor(DIM), "Saves: %s (one Controller Pak per controller: records, created players, options)",
+                           launcher_utf8(launcher_data_dir() / "saves").c_str());
     });
 }
 
-void page_about(Ui& u) {
+void page_about(Ui& u, LauncherSettings& s) {
     panel(u, [&] {
         ImGui::Text("%s  v%s", HANGTIME_PRODUCT_NAME, HANGTIME_VERSION);
+        bool autocheck = update_auto(s);
+        if (ImGui::Checkbox("Check for updates when the launcher opens", &autocheck)) {
+            s.extra["update_check"] = autocheck ? "1" : "0";
+            if (autocheck) update_check_start(update_repo_of(s));
+        }
+        ImGui::SameLine(); if (ImGui::Button("Check now")) update_check_start(update_repo_of(s));
+        ImGui::TextColored(ImColor(DIM), "Asks github.com/%s for its latest release (no personal data; nothing is downloaded).", update_repo_of(s).c_str());
         ImGui::TextColored(ImColor(DIM), "%s",   // no build timestamp: builds are reproducible
 #ifdef _WIN32
                            "Windows x64, Direct3D 12"
@@ -485,6 +547,7 @@ LauncherResult run_launcher(LauncherSettings& s) {
 
     u.bind = InputBindings::defaults(); u.bind.load(s.extra);
     verify_rom(u, s);
+    if (update_auto(s) && update_check_status().state == UpdateStatus::Idle) update_check_start(update_repo_of(s));   // once per run (F1 returns here)
     LauncherResult result = LauncherResult::Quit;
     bool running = true;
     uint32_t stick_next = 0;
@@ -537,6 +600,7 @@ LauncherResult run_launcher(LauncherSettings& s) {
                 if (n == N_OK) {
                     if (u.sel == 0) { if (u.rom_ok) { result = LauncherResult::Play; running = false; } else { u.message = "Select your NBA Hangtime ROM first."; open_page(u, s, 5); } }
                     else if (u.sel == SKIP_ITEM) s.skip_launcher = !s.skip_launcher;
+                    else if (u.sel == UPDATE_ITEM) update_activate(s);
                     else open_page(u, s, u.sel);
                 } else if (n == N_BACK) running = false;
                 else if (n) u.sel = main_move(u.sel, n);
@@ -570,19 +634,22 @@ LauncherResult run_launcher(LauncherSettings& s) {
         if (u.page == MAIN) {
             // mouse: hover selects, click activates
             const ImVec2 m = io.MousePos;
-            for (int i = 0; i < TILE_COUNT + 1; ++i) {
+            for (int i = 0; i < TILE_COUNT + 2; ++i) {
                 const bool skip = i == SKIP_ITEM;
-                const ImVec2 a = skip ? u.P(110, 828) : u.P(TILES[i].x, TILES[i].y), b = skip ? u.P(560, 872) : u.P(TILES[i].x + TILES[i].w, TILES[i].y + TILES[i].h);
+                const Tile& t = i == UPDATE_ITEM ? UPDATE_TILE : TILES[std::min(i, TILE_COUNT - 1)];
+                const ImVec2 a = skip ? u.P(110, 828) : u.P(t.x, t.y), b = skip ? u.P(560, 872) : u.P(t.x + t.w, t.y + t.h);
                 if (m.x >= a.x && m.x < b.x && m.y >= a.y && m.y < b.y && (io.MouseDelta.x || io.MouseDelta.y || ImGui::IsMouseClicked(0))) {
                     u.sel = i;
                     if (ImGui::IsMouseClicked(0)) {
                         if (i == 0) { if (u.rom_ok) { result = LauncherResult::Play; running = false; } else { u.message = "Select your NBA Hangtime ROM first."; open_page(u, s, 5); } }
                         else if (skip) s.skip_launcher = !s.skip_launcher;
+                        else if (i == UPDATE_ITEM) update_activate(s);
                         else open_page(u, s, i);
                     }
                 }
             }
             for (int i = 0; i < TILE_COUNT; ++i) draw_tile(u, TILES[i], u.sel == i, time);
+            draw_update_tile(u, s, u.sel == UPDATE_ITEM, time);
             const bool ss = u.sel == SKIP_ITEM;
             dl()->AddRect(u.P(110, 832), u.P(140, 862), ss ? GOLD : EDGE, u.S(5), 0, u.S(3));
             if (s.skip_launcher) dl()->AddRectFilled(u.P(117, 839), u.P(133, 855), GOLD, u.S(3));
@@ -595,7 +662,7 @@ LauncherResult run_launcher(LauncherSettings& s) {
             switch (u.page) {
                 case GRAPHICS: page_graphics(u, s); break; case CONTROLS: page_controls(u, s); break;
                 case CHEATS: page_cheats(u, s); break; case AUDIO: page_audio(u, s); break;
-                case FILES: page_files(u, s); break; case ABOUT: page_about(u); break; default: break;
+                case FILES: page_files(u, s); break; case ABOUT: page_about(u, s); break; default: break;
             }
             hints(u, "SELECT", "BACK");
         }

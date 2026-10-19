@@ -86,7 +86,7 @@ endfunction()
 # ---- runtime objects (no generated or game-derived sources) ----
 add_library(hangtime_rt OBJECT
     main.cpp launcher.cpp launcher_ui.cpp input_map.cpp cheats.cpp dl_dump.cpp widescreen.cpp rt64_context.cpp perf.cpp render_gpu.cpp
-    game_module_loader.cpp module_builder.cpp partition.cpp controller_pak.cpp "${RT64}/src/contrib/imgui/backends/imgui_impl_sdlrenderer2.cpp" runtime_support.cpp "${NATIVE}/process_context.cpp"
+    game_module_loader.cpp module_builder.cpp partition.cpp controller_pak.cpp update_check.cpp "${RT64}/src/contrib/imgui/backends/imgui_impl_sdlrenderer2.cpp" runtime_support.cpp "${NATIVE}/process_context.cpp"
     ${ULTRAMODERN_SOURCES} ${LIBRECOMP_SOURCES})
 hangtime_settings(hangtime_rt)
 
@@ -162,7 +162,7 @@ target_link_libraries(hangtime PRIVATE
     "${RT64_BUILD}/src/contrib/zstd/build/cmake/lib/Release/zstd_static.lib"
     "${RT64}/src/contrib/dxc/lib/x64/dxcompiler.lib"
     "${SDL2_DIR}/lib/x64/SDL2.lib"
-    d3d12 dxgi shcore delayimp comctl32 bcrypt shell32 ole32 winmm)
+    d3d12 dxgi shcore delayimp comctl32 bcrypt shell32 ole32 winmm winhttp)
 # A GUI-subsystem program (no console window on double-click); main() stays the entry point.
 set_target_properties(hangtime PROPERTIES WIN32_EXECUTABLE TRUE)
 target_link_options(hangtime PRIVATE /ENTRY:mainCRTStartup)

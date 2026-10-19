@@ -40,13 +40,17 @@ Verified by automated tests that drive the real game (see [docs/TESTING.md](docs
   screens; or the original 4:3 throughout.
 - **Controls**: keyboard and gamepads (SDL game controllers), rebindable, checked through the
   game's own input decoding.
-- **Local multiplayer**: gamepads on N64 controller ports 1-4, as opponents or teammates
-  (two players verified with virtual gamepads; four physical gamepads not yet tested).
+- **Local multiplayer, up to four players**: gamepads (and the keyboard) on N64 controller
+  ports 1-4; players 1-2 are one team, 3-4 the other. Players join the game's way (Start at
+  team select). Two and four players verified with virtual gamepads; four physical gamepads
+  not yet tested.
 - **Original cheats**: 17 of the game's 21 cheat codes (matchup-screen codes and button
   sequences) from the launcher, applied through the game's own code, plus "Always On Fire".
   Four original codes cannot work in this version of the game (docs/ROADMAP.md).
 - **Launcher**: graphics, controls, cheats, audio and game-files pages, usable with mouse,
-  keyboard or gamepad; F1 returns to it from the game. Fullscreen (F11 or Alt+Enter), per-system
+  keyboard or gamepad; F1 returns to it from the game. Its choices (including which player the
+  keyboard and second gamepad are) are remembered in `hangtime.ini`. An update check shows
+  **UPDATE AVAILABLE** when a newer release is published (below). Fullscreen (F11 or Alt+Enter), per-system
   render GPU choice for hybrid-graphics laptops.
 
 ## Playing
@@ -70,6 +74,12 @@ Default controls: arrows move, **S** shoot, **D** pass, **X**/Shift/Space turbo,
 gamepad left stick or D-pad, **A** shoot, **B** pass, **RB/RT** turbo, **Start**. F10 toggles
 16:9, F11 fullscreen, F1 back to the launcher. Settings are kept in `hangtime.ini` beside the
 program (or in your user folder when that is not writable).
+
+Update check: when the launcher opens it asks GitHub (api.github.com, one anonymous HTTPS
+request, no personal data) for this project's latest release and compares it with your version.
+Nothing is downloaded or installed: the UPDATE AVAILABLE tile opens the release page in your
+browser. Turn the automatic check off under ABOUT (or `update_check=0` in `hangtime.ini`); on
+Linux it uses the system's `curl`.
 
 | File or folder (beside the program) | What it is |
 |---|---|
