@@ -6,6 +6,7 @@
 //   setup/full.toml, setup/full.symbols.toml, setup/audio_rsp.toml   recompiler configuration
 //   setup/sdk/include/..., setup/sdk/src/{game_module_api.cpp,rsp.cpp} what the module compiles against
 //   tools/N64Recomp[.exe], tools/RSPRecomp[.exe], tools/zig/zig[.exe]
+//     (Linux: the same three as one archive, tools/buildkit.tar.xz, unpacked only while building)
 //   hangtime.lib (Windows: the runtime's import library)
 #include <atomic>
 #include <filesystem>
@@ -28,5 +29,7 @@ struct ModuleBuildProgress {
 
 ModuleBuildPaths module_build_paths();                       // from the executable and data folders
 bool module_build_available(const ModuleBuildPaths& paths);  // the setup kit and tools are present
+// Linux: removes a loose kit and Zig cache that an earlier package left (unused once the kit is an archive).
+void module_build_tidy(const ModuleBuildPaths& paths);
 // Blocking; run it on a worker thread. Writes paths.output on success.
 void module_build(const ModuleBuildPaths& paths, const std::filesystem::path& rom, ModuleBuildProgress& progress);

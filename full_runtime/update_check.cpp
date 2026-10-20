@@ -215,8 +215,11 @@ bool kit_changed(const fs::path& root, const fs::path& exe_dir) {
     if (!fs::is_directory(root / "setup", ec)) return false;   // the new package has no kit: keep the module
     std::vector<fs::path> files;
     for (auto& e : fs::recursive_directory_iterator(root / "setup", ec)) if (e.is_regular_file()) files.push_back(fs::relative(e.path(), root));
-    for (const char* t : {"N64Recomp", "RSPRecomp"}) files.push_back(fs::path("tools") / (std::string(t) + EXE));
-    files.push_back(fs::path("tools") / "zig" / (std::string("zig") + EXE));
+    if (fs::exists(root / "tools" / "buildkit.tar.xz", ec)) files.push_back(fs::path("tools") / "buildkit.tar.xz");   // Linux packages
+    else {
+        for (const char* t : {"N64Recomp", "RSPRecomp"}) files.push_back(fs::path("tools") / (std::string(t) + EXE));
+        files.push_back(fs::path("tools") / "zig" / (std::string("zig") + EXE));
+    }
     for (const auto& f : files) if (!same_file(root / f, exe_dir / f)) return true;
     return false;
 }

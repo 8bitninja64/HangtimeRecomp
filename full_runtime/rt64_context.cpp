@@ -12,6 +12,8 @@
 #include "librecomp/game.hpp"
 #include "video_options.hpp"
 #include "perf.hpp"
+#include "dl_guard.hpp"
+#include <thread>
 #include "hle/rt64_workload_queue.h"
 #include "hle/rt64_present_queue.h"
 
@@ -125,11 +127,28 @@ public:
         const auto t0 = std::chrono::steady_clock::now();
         app->state->rsp->reset();
         app->interpreter->loadUCodeGBI(task->t.ucode & 0x3FFFFFF, task->t.ucode_data & 0x3FFFFFF, true);
+        if (hangtime_video.dl_check) hangtime_dl_snapshot(app->core.RDRAM, dl, dl_snapshot);
+        if (hangtime_video.dl_delay_ms > 0) std::this_thread::sleep_for(std::chrono::milliseconds(hangtime_video.dl_delay_ms));
         app->processDisplayLists(app->core.RDRAM, dl, 0, true);
+        if (hangtime_video.dl_check) {
+            const DlChange c = hangtime_dl_compare(app->core.RDRAM, dl_snapshot);
+            if (c.total()) {
+                ++dl_race_lists;
+                if (dl_race_lists <= 20 || dl_race_lists % 100 == 0) {
+                    char at[128]; int n = 0;
+                    for (unsigned k = 0; k < c.total() && k < 4; ++k)
+                        n += snprintf(at + n, sizeof(at) - n, " %c@%06X+%u", "cmvto"[(int)c.first[k].kind], c.first[k].addr, c.first[k].len);
+                    fprintf(stderr, "DLRACE dl=%u lists=%u changed cmd=%u mtx=%u vtx=%u tex=%u other=%u bytes=%llu ranges=%zu at%s\n", display_lists, dl_race_lists,
+                            c.ranges[0], c.ranges[1], c.ranges[2], c.ranges[3], c.ranges[4], (unsigned long long)c.bytes, dl_snapshot.ranges.size(), at);
+                }
+            }
+        }
         dl_us += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - t0).count();
         perf_gfx_phase(0);
         perf_event('d', display_lists);
     }
+    DlSnapshot dl_snapshot;      // --dl-check
+    unsigned dl_race_lists = 0;  // display lists whose inputs changed while RT64 read them
     unsigned present_skips = 0;   // VIs whose present the presentation guard skipped (update_screen)
     long long dl_us = 0, present_us = 0;  // host time in display-list processing / presentation, per PROGRESS second
     void send_dummy_workload(uint32_t) override {}
@@ -198,9 +217,9 @@ public:
                 auto u = [&](int k) { return (unsigned)(uint16_t)half(r + 2 * k); };
                 n += snprintf(stats + n, sizeof(stats) - n, "%s%u/%u/%u", p ? "," : "", u(1) + u(3), u(0) + u(2), u(12));
             }
-            fprintf(stderr, "PROGRESS vi=%u display_lists=%u origin=%08X hstart=%08X period=%d score=%d-%d polls=%u stats=%s dl_ms=%.0f present_ms=%.0f swap_hz=%u fire=%X present_skips=%u\n", screens, display_lists,
+            fprintf(stderr, "PROGRESS vi=%u display_lists=%u origin=%08X hstart=%08X period=%d score=%d-%d polls=%u stats=%s dl_ms=%.0f present_ms=%.0f swap_hz=%u fire=%X present_skips=%u dl_races=%u\n", screens, display_lists,
                     vi->VI_ORIGIN_REG, vi->VI_H_START_REG, half(0x800A6662), half(0x800A6688), half(0x800A668A), hangtime_poll_count(), stats, dl_us / 1000.0, present_us / 1000.0,
-                    app->sharedQueueResources->swapChainRate, (unsigned)(uint16_t)half(0x800A6EB0), present_skips);
+                    app->sharedQueueResources->swapChainRate, (unsigned)(uint16_t)half(0x800A6EB0), present_skips, dl_race_lists);
             dl_us = present_us = 0;
             if (perf_enabled()) {   // RT64's own profilers (ms averages over their last 120 samples), as microseconds
                 auto us = [](const RT64::ProfilingTimer& t) { return (uint64_t)(t.average() * 1000.0); };

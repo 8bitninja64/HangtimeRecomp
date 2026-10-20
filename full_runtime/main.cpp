@@ -666,6 +666,8 @@ int main(int argc, char** argv) {
         else if (!strcmp(argv[i], "--three-point") && i + 1 < argc) hangtime_video.three_point = !strcmp(argv[++i], "off") ? 0 : 1;
         else if (!strcmp(argv[i], "--render-gpu") && i + 1 < argc) render_gpu_arg = argv[++i];
         else if (!strcmp(argv[i], "--present-blocking")) hangtime_video.present_blocking = true;
+        else if (!strcmp(argv[i], "--dl-check")) hangtime_video.dl_check = true;
+        else if (!strcmp(argv[i], "--dl-delay-ms") && i + 1 < argc) hangtime_video.dl_delay_ms = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--graphics-api") && i + 1 < argc) hangtime_video.vulkan = !strcmp(argv[++i], "vulkan");
         else if (!strcmp(argv[i], "--resolution") && i + 1 < argc) hangtime_video.resolution = atof(argv[++i]);
         else if (!strcmp(argv[i], "--fullscreen")) fullscreen_flag = true;
@@ -738,6 +740,7 @@ int main(int argc, char** argv) {
                     SDL_JoystickNameForIndex(i), SDL_JoystickGetDeviceVendor(i), SDL_JoystickGetDeviceProduct(i), guid);
         }
     if (!background) update_cleanup();   // files the last update replaced (update_check.hpp)
+    module_build_tidy(module_build_paths());   // Linux: an earlier package's loose build kit and Zig cache
     if (!background && !no_launcher && (force_launcher || !settings.skip_launcher)) {
         if (!rom_path.empty()) settings.rom = std::filesystem::absolute(rom_path);   // e.g. a ROM dropped on the exe
         if (run_launcher(settings) == LauncherResult::Quit) { SDL_Quit(); return 0; }

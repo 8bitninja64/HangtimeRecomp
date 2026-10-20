@@ -41,9 +41,20 @@ ModuleBuildPaths module_build_paths() {
     return p;
 }
 
+#ifndef _WIN32
+// Linux packages carry the tools (N64Recomp, RSPRecomp, zig/) as one archive (package_release.py
+// --linux): 46 MB instead of 254 MB on disk. A build unpacks it into the work folder, which is
+// emptied afterwards, so between builds the installed folder holds only the archive.
+static fs::path kit_archive(const ModuleBuildPaths& p) { return p.tools / "buildkit.tar.xz"; }
+#endif
+
 bool module_build_available(const ModuleBuildPaths& p) {
-    for (const fs::path& f : {p.setup / "audio_rsp.toml", p.setup / "sdk" / "src" / "game_module_api.cpp",
-                              p.tools / (std::string("N64Recomp") + EXE), p.tools / (std::string("RSPRecomp") + EXE), p.zig})
+    for (const fs::path& f : {p.setup / "audio_rsp.toml", p.setup / "sdk" / "src" / "game_module_api.cpp"})
+        if (!fs::exists(f)) return false;
+#ifndef _WIN32
+    if (fs::exists(kit_archive(p))) return true;
+#endif
+    for (const fs::path& f : {p.tools / (std::string("N64Recomp") + EXE), p.tools / (std::string("RSPRecomp") + EXE), p.zig})
         if (!fs::exists(f)) return false;
 #ifdef _WIN32
     if (!fs::exists(p.import_lib)) return false;
@@ -90,7 +101,7 @@ static int run(const std::vector<std::string>& args, const fs::path& cwd, const 
         std::vector<char*> argv;
         for (const auto& a : args) argv.push_back(const_cast<char*>(a.c_str()));
         argv.push_back(nullptr);
-        execv(argv[0], argv.data());
+        execvp(argv[0], argv.data());   // tools by absolute path; the system tar by name
         _exit(127);
     }
     if (pid < 0) return -1;
@@ -129,6 +140,20 @@ static void clean_work(const fs::path& work) {
         if (e.path().filename() != "build.log") fs::remove_all(e.path(), ec);
 }
 
+void module_build_tidy(const ModuleBuildPaths& p) {
+#ifndef _WIN32
+    // An install updated from an earlier package keeps that package's loose tools and the Zig cache
+    // its first build left beside the work folder (~350 MB); with the archive they are not used.
+    std::error_code ec;
+    if (!fs::exists(kit_archive(p), ec)) return;
+    for (const fs::path& f : {p.tools / "zig", p.tools / "N64Recomp", p.tools / "RSPRecomp", p.work.parent_path() / "zig-cache"})
+        if (fs::exists(fs::symlink_status(f, ec)) && fs::remove_all(f, ec) > 0 && !ec)
+            fprintf(stderr, "GAME MODULE removed the unused %s\n", launcher_utf8(f).c_str());
+#else
+    (void)p;
+#endif
+}
+
 void module_build(const ModuleBuildPaths& p, const fs::path& rom_path, ModuleBuildProgress& g) {
     auto fail = [&](const std::string& why) {
         clean_work(p.work);
@@ -149,6 +174,19 @@ void module_build(const ModuleBuildPaths& p, const fs::path& rom_path, ModuleBui
     if (!launcher_load_rom(rom_path, rom, err)) return fail("The ROM could not be read: " + err);
     { std::ofstream f(p.work / "rom.z64", std::ios::binary); f.write(reinterpret_cast<const char*>(rom.data()), (std::streamsize)rom.size()); if (!f) return fail("Could not write to " + launcher_utf8(p.work)); }
 
+    // The tools: beside the executable, or (Linux) unpacked from the package's archive.
+    fs::path tools = p.tools, zig = p.zig;
+#ifndef _WIN32
+    if (fs::exists(kit_archive(p))) {
+        g.set_step("Unpacking the build tools"); g.fraction = 0.03f;
+        tools = p.work / "kit";
+        zig = tools / "zig" / "zig";
+        fs::create_directories(tools, ec);
+        if (run({"tar", "-xJf", launcher_utf8(kit_archive(p)), "-C", launcher_utf8(tools)}, p.work, g.log) != 0 || !fs::exists(zig))
+            return fail("Could not unpack the build tools (" + launcher_utf8(kit_archive(p)) + ").");
+    }
+#endif
+
     // 2. Recompile the game's CPU code and audio microcode (N64Recomp, RSPRecomp).
     g.set_step("Recompiling the game code"); g.fraction = 0.05f;
     // The function partition and hooks are computed here from the ROM (partition.cpp), so the
@@ -163,20 +201,22 @@ void module_build(const ModuleBuildPaths& p, const fs::path& rom_path, ModuleBui
     }
     if (!write_config(p.setup / "audio_rsp.toml", p.work / "audio_rsp.toml", {{"rom_file_path", "rom.z64"}, {"output_file_path", "audio_rsp_generated.cpp"}}))
         return fail("Could not write the recompiler configuration.");
-    if (run({launcher_utf8(p.tools / (std::string("N64Recomp") + EXE)), launcher_utf8(fs::absolute(p.work / "full.toml"))}, p.work, g.log) != 0) return fail("The game code recompiler failed.");
+    if (run({launcher_utf8(tools / (std::string("N64Recomp") + EXE)), launcher_utf8(fs::absolute(p.work / "full.toml"))}, p.work, g.log) != 0) return fail("The game code recompiler failed.");
     g.fraction = 0.25f;
     // Absolute config paths: RSPRecomp aborts on a bare relative one (empty base directory).
-    if (run({launcher_utf8(p.tools / (std::string("RSPRecomp") + EXE)), launcher_utf8(fs::absolute(p.work / "audio_rsp.toml"))}, p.work, g.log) != 0) return fail("The audio recompiler failed.");
+    if (run({launcher_utf8(tools / (std::string("RSPRecomp") + EXE)), launcher_utf8(fs::absolute(p.work / "audio_rsp.toml"))}, p.work, g.log) != 0) return fail("The audio recompiler failed.");
     fs::remove(p.work / "rom.z64", ec);
 
-    // 3. Compile with the bundled Zig toolchain (its cache sits beside the work folder and is reused).
+    // 3. Compile with the bundled Zig toolchain. Windows: its cache sits beside the work folder and is
+    //    reused. Linux: inside the work folder, so it is removed with it (it holds compiled game code
+    //    and was ~100 MB of the installed size; a rebuild compiles Zig's C++ runtime again).
     g.set_step("Compiling the game"); g.fraction = 0.30f;
 #ifdef _WIN32
     SetEnvironmentVariableW(L"ZIG_GLOBAL_CACHE_DIR", (p.work.parent_path() / "zig-cache").c_str());
     SetEnvironmentVariableW(L"ZIG_LOCAL_CACHE_DIR", (p.work.parent_path() / "zig-cache").c_str());
 #else
-    setenv("ZIG_GLOBAL_CACHE_DIR", (p.work.parent_path() / "zig-cache").c_str(), 1);
-    setenv("ZIG_LOCAL_CACHE_DIR", (p.work.parent_path() / "zig-cache").c_str(), 1);
+    setenv("ZIG_GLOBAL_CACHE_DIR", (p.work / "zig-cache").c_str(), 1);
+    setenv("ZIG_LOCAL_CACHE_DIR", (p.work / "zig-cache").c_str(), 1);
 #endif
     std::vector<fs::path> sources;
     for (const auto& e : fs::directory_iterator(p.work / "generated", ec))
@@ -194,7 +234,7 @@ void module_build(const ModuleBuildPaths& p, const fs::path& rom_path, ModuleBui
         for (size_t i; !failed && (i = next++) < sources.size();) {
             const fs::path& src = sources[i];
             const bool cpp = src.extension() == ".cpp";
-            std::vector<std::string> args = {launcher_utf8(p.zig), cpp ? "c++" : "cc"};
+            std::vector<std::string> args = {launcher_utf8(zig), cpp ? "c++" : "cc"};
             args.insert(args.end(), flags.begin(), flags.end());
             args.push_back(cpp ? "-std=c++20" : "-std=c11");
             args.insert(args.end(), {"-c", launcher_utf8(src), "-o", launcher_utf8(p.work / "obj" / (src.filename().string() + ".o"))});
@@ -210,7 +250,10 @@ void module_build(const ModuleBuildPaths& p, const fs::path& rom_path, ModuleBui
 
     // 4. Link the module (Windows: against the runtime's import library) and install it.
     g.set_step("Linking"); g.fraction = 0.88f;
-    std::vector<std::string> link = {launcher_utf8(p.zig), "c++", "-target", TARGET, "-shared", "-o", launcher_utf8(p.work / MODULE_NAME)};
+    std::vector<std::string> link = {launcher_utf8(zig), "c++", "-target", TARGET, "-shared", "-o", launcher_utf8(p.work / MODULE_NAME)};
+#ifndef _WIN32
+    link.push_back("-s");   // no debug info in the installed module (4.9 -> 2 MB)
+#endif
     for (const auto& src : sources) link.push_back(launcher_utf8(p.work / "obj" / (src.filename().string() + ".o")));
 #ifdef _WIN32
     link.push_back(launcher_utf8(p.import_lib));

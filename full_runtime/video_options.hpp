@@ -17,6 +17,11 @@ struct HangtimeVideoOptions {
     bool widescreen = false;   // --widescreen: true 16:9 live play (widescreen.cpp), aspect_ratio = target
     bool present_blocking = false;   // --present-blocking: RT64's original back-pressure (A/B; rt64_context.cpp)
     bool vulkan = false;       // --graphics-api vulkan (Windows; Linux is always Vulkan)
+    // Diagnostics (rt64_context.cpp, dl_guard.cpp): --dl-check hashes each display list's inputs at
+    // submission and after RT64 read them (DLRACE lines); --dl-delay-ms N waits N ms before RT64
+    // reads a list, standing in for a slower CPU (Steam Deck).
+    bool dl_check = false;
+    int dl_delay_ms = 0;
 };
 extern HangtimeVideoOptions hangtime_video;
 #include <atomic>

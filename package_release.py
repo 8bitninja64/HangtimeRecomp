@@ -195,6 +195,16 @@ def main():
     if (INTERNAL or missing) and not PERSONAL:
         (d / 'NOTICE.txt').write_text('INTERNAL BUILD - DO NOT DISTRIBUTE.\nMissing license texts: ' + (', '.join(missing) or 'none') + '\n', encoding='utf-8')
     scan(d)
+    if LINUX and not PERSONAL:
+        # The build kit as one archive (module_builder.cpp unpacks it into its work folder for a build
+        # and removes it afterwards): 46 MB on the player's disk instead of 254 MB of loose tools.
+        kit = d / 'tools/buildkit.tar.xz'
+        with tarfile.open(kit, 'w:xz', preset=9) as tf:
+            for f in sorted((d / 'tools').iterdir()):
+                if f != kit: tf.add(f, arcname=f.name)
+        for f in (d / 'tools').iterdir():
+            if f != kit: shutil.rmtree(f) if f.is_dir() and not f.is_symlink() else f.unlink()
+        print(f'build kit: tools/buildkit.tar.xz ({kit.stat().st_size // 1024} KiB)')
     if LINUX:   # tar keeps the executable bits and Zig's symlinks
         z = out / (name + '.tar.gz')
         with tarfile.open(z, 'w:gz') as tf: tf.add(d, arcname=name)

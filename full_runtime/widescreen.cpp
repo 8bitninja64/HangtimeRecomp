@@ -287,7 +287,13 @@ uint32_t hangtime_ws_rewrite(uint8_t* rdram, uint32_t dl) {
         char path[64]; snprintf(path, sizeof(path), "ws_bad_clamp_%d.txt", bad_dumps);
         hangtime_ws_trace_write(path);
     }
-    std::sort(f.calls.begin(), f.calls.end(), [](const CallInfo& a, const CallInfo& b) { return a.dl_begin < b.dl_begin; });
+    // Lookup by display-list address: calls that emitted nothing (culled sprites) can start where
+    // the next real call starts. Left in, the sort's order of equal keys decided whether call_at
+    // found the real call (MSVC) or an empty one (libstdc++: the sprite stayed shifted by
+    // +-ws_shift on Linux, misplaced backdrop pieces and black holes in 16:9). They have no
+    // rectangles to move, so they leave the lookup; view_clamp above still saw them.
+    f.calls.erase(std::remove_if(f.calls.begin(), f.calls.end(), [](const CallInfo& c) { return c.dl_begin == c.dl_end; }), f.calls.end());
+    std::stable_sort(f.calls.begin(), f.calls.end(), [](const CallInfo& a, const CallInfo& b) { return a.dl_begin < b.dl_begin; });
     auto call_at = [&](uint32_t a) -> const CallInfo* {
         auto it = std::upper_bound(f.calls.begin(), f.calls.end(), a, [](uint32_t v, const CallInfo& c) { return v < (c.dl_begin & 0x7FFFFF); });
         if (it == f.calls.begin()) return nullptr;
@@ -295,6 +301,7 @@ uint32_t hangtime_ws_rewrite(uint8_t* rdram, uint32_t dl) {
         return a < (it->dl_end & 0x7FFFFF) ? &*it : nullptr;
     };
     const int ext_floor = (int)std::ceil(hangtime_ws_extend) + 1;
+    std::vector<const CallInfo*> moved_calls;   // diagnostic: shifted calls whose rectangles were found
     Out o;
     o.put(0x00525464, 1u << 28 | EXT);                 // gEXEnable
     o.put(EXT << 24 | 0x000033, 2);                    // gEXSetRectAspect(G_EX_ASPECT_ADJUST)
@@ -360,6 +367,7 @@ uint32_t hangtime_ws_rewrite(uint8_t* rdram, uint32_t dl) {
             if (const CallInfo* c = call_at(pc)) {
                 // Back to the sprite's true x, plus the view clamp for world sprites (not the HUD).
                 const int move = -c->shift + (c->screen ? 0 : d);
+                if (c->shift) moved_calls.push_back(c);
                 if (move) {
                     const int lrx = (a >> 12) & 0xFFF, lry = a & 0xFFF, ulx = (b >> 12) & 0xFFF, uly = b & 0xFFF;
                     ex_texrect(o, (b >> 24) & 7, op == 0xE5, ulx + move * 4, uly, lrx + move * 4, lry, word(pc + 12), word(pc + 20));
@@ -370,6 +378,18 @@ uint32_t hangtime_ws_rewrite(uint8_t* rdram, uint32_t dl) {
         }
         o.put(a, b);
         pc += 8;
+    }
+    if (live) {   // check: a call the game shifted whose rectangles the walk never met stays shifted on screen (WSMISS; verify_linux.py)
+        static unsigned misses = 0;
+        int n = 0, shifted = 0; const CallInfo* first = nullptr;
+        for (const auto& c : f.calls)
+            if (c.shift) {
+                ++shifted;
+                if (c.dl_end != c.dl_begin && std::find(moved_calls.begin(), moved_calls.end(), &c) == moved_calls.end()) { if (!n++) first = &c; }
+            }
+        if (n && (++misses <= 40 || misses % 200 == 0))
+            fprintf(stderr, "WSMISS dl=%06X frame_dl=%06X calls=%zu shifted=%d missed=%d first=ra%08X dl %06X..%06X shift=%+d misses=%u\n", dl,
+                    f.dl_start & 0x7FFFFF, f.calls.size(), shifted, n, first->caller, first->dl_begin & 0x7FFFFF, first->dl_end & 0x7FFFFF, first->shift, misses);
     }
     o.put(0xB8000000, 0);
     if (o.overflow) { fprintf(stderr, "WIDESCREEN: rewritten display list overflow; original frame drawn\n"); return dl; }
