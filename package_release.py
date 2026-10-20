@@ -29,7 +29,7 @@ P = Path(__file__).resolve().parent
 sys.path.insert(0, str(P))
 import hangtime_paths, third_party
 ROOT = P.parent
-VER = '0.1.0'
+VER = '0.1.1'
 INTERNAL = False  # owner 2026-10-19: public pre-release, GPL-3.0-or-later (PUBLIC_RELEASE.md); a missing license text still makes a package INTERNAL
 LINUX = '--linux' in sys.argv
 PERSONAL = '--personal' in sys.argv

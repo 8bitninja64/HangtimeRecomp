@@ -40,6 +40,11 @@ first start.
 
 Your settings (`hangtime.ini`) and saves (`saves/`) live next to the program.
 
+**Steam Deck:** runs great. Tested on a Steam Deck with a complete match in 16:9 widescreen,
+start to final results, without a single graphical glitch. Use the Linux package; after the first
+start the folder takes about 60 MB. If the very first start closes right after preparing the game
+files, just start it again (seen once; it plays normally from then on).
+
 Windows: if it says `VCRUNTIME140.dll` is missing, install the
 [Microsoft Visual C++ Redistributable (x64)](https://aka.ms/vs/17/release/vc_redist.x64.exe).
 

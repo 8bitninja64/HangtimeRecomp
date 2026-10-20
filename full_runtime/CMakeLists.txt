@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(hangtime VERSION 0.1.0 LANGUAGES C CXX)
+project(hangtime VERSION 0.1.1 LANGUAGES C CXX)
 # CI and source checks without a ROM: build only the runtime (no game module, no generated code).
 option(HANGTIME_RUNTIME_ONLY "Build only the runtime executable (no ROM needed)" OFF)
 set(CMAKE_CXX_STANDARD 20)

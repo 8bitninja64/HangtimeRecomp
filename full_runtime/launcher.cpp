@@ -189,6 +189,10 @@ void launcher_setup_log(bool console) {
     struct stat st{};
     if (isatty(STDERR_FILENO)) return;
     if (fstat(STDERR_FILENO, &st) == 0 && (S_ISREG(st.st_mode) || S_ISFIFO(st.st_mode))) return;  // redirected by the caller
+    // The previous run's log is kept as hangtime.prev.log: after a crash the player starts again,
+    // which would otherwise overwrite the only report of it.
+    std::error_code ec;
+    fs::rename(launcher_data_dir() / "hangtime.log", launcher_data_dir() / "hangtime.prev.log", ec);
     if (!freopen(launcher_utf8(launcher_data_dir() / "hangtime.log").c_str(), "w", stderr)) return;
 #endif
     setvbuf(stderr, nullptr, _IONBF, 0);  // a killed process must not lose the log
